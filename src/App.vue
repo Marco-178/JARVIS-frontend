@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
 import BackendInteract from './components/BackendInteract.vue'
 import MainPage from "@/components/MainPage.vue";
 </script>
