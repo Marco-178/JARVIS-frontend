@@ -49,15 +49,14 @@ function findAddress(address: string) {
             }
         }
     ).then((response) =>{
-    const { lat, lon } = response.data[0];
-    console.log('Coordinate:', lat, lon);
+    const { lat, lon } = response.data[0]; // response.data contiene più oggetti di luoghi trovati (?)
+    map.setView([lat, lon], 30);
+    let marker = L.marker([lat, lon]).addTo(map);
+    marker.on('click', onMapClick)
   }).catch (error => {
-    console.error('Errore durante la geocodifica:', error);
+    console.error('Errore durante la geocodifica:', error); // se non trova il luogo manca la segnalazione all'utente
   });
-  let marker = L.marker([44.838215, 11.619852]).addTo(map);
-  marker.on('click', onMapClick)
 }
-//map.setView([lat, lon], 30);
 
 function findAddressV2(){
   const geocoder = new Geocoder({
@@ -65,9 +64,11 @@ function findAddressV2(){
   }).addTo(map);
   geocoder.on('markgeocode', (e: any) => {
     const center = e.geocode.center;
-    L.marker(center).addTo(map)
+    map.setView([center.lat, center.lng], 30);
+    let marker = L.marker(center).addTo(map)
         .bindPopup(e.geocode.name)
         .openPopup();
+    marker.on('click', onMapClick)
   })
 }
 
@@ -85,7 +86,7 @@ function onMapClick(e: any){
       <!-- Box verde che comprende form e mappa -->
       <div style="order: 2"></div>
       <input type="text" name="ricerca" placeholder="Luogo da cercare">
-      <button @click="findAddress('San Romano, Ferrara')">Cerca</button><br> <!-- 44.8328, 11.6178 San Romano -->
+      <button @click="findAddress('via San Romano, Ferrara')">Cerca</button><br> <!-- 44.8328, 11.6178 San Romano -->
       <button @click="findAddressV2()">CercaV2</button><br> <!-- 44.8328, 11.6178 San Romano -->
       <div ref="mapContainer" id="map"/>
     </section>
@@ -102,7 +103,7 @@ function onMapClick(e: any){
 </template>
 
 <style scoped>
-  #map{height: 580px;width: 580px;}
+  #map{height: 580px; width: 580px;}
 
   .item-disposition{
     margin: 20px;
@@ -116,7 +117,7 @@ function onMapClick(e: any){
   .disposition{
     display: flex;
     flex-direction: row;
-    align-content: space-between;
+    align-content: center;
     align-items: flex-start;
     padding: 20px;
   }
