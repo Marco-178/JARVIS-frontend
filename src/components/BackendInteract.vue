@@ -6,7 +6,8 @@
   const dataVenue     = ref<Venue[]>([]);
   const dataPersonnel = ref<Personnel[]>([]);
   const dataBooking   = ref<Booking[]>([]);
-  //La risposta restituisce oggetti diversi che vengono salvati nei rispettivi array indicati nel tipo ALlowedData
+  const dataEventInfo = ref<EventInfo[]>([]);
+  //La risposta restituisce oggetti diversi che vengono salvati nei rispettivi array indicati nel tipo AllowedData
   type AllowedData = Venue[] | Personnel[] | Booking[] | EventInfo[];
 
   class Venue{
@@ -81,7 +82,7 @@
   }
 
   class EventInfo{
-    event_id: string;
+    event_id: number;
     event_type: string;
     date: string;
     schedule_start: string;
@@ -98,22 +99,12 @@
     }
   }
 
-  function createVenue(item: Venue){
-    const newVenue = new Venue(item);
-    console.log(newVenue);
-  }
-
   axios.get<AllowedData>("/api/database/ls").then((response: AxiosResponse<AllowedData>) => {
     console.log("Risposta da Axios:", response);
     console.log("Dati ricevuti:", response.data);
     // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
     response.data.forEach(item => {
           if ('address' in item) {
-            if(item instanceof Venue){ //se non funziona: TODO metodo di confronto degli attributi
-              console.log("istance of Venue detected")
-            } else{
-              console.log("istance not detected")
-            }
             const newVenue = new Venue(item);
             console.log(newVenue);
             dataVenue.value.push(newVenue);
@@ -132,21 +123,60 @@
     console.error("Errore durante la richiesta Axios:", error);
   });
 
-  //TODO chiamata alla callREST
+  axios.get<AllowedData>("/api/callREST/getEvents").then((response: AxiosResponse<AllowedData>) => {
+    console.log("Risposta da Axios:", response);
+    console.log("Dati ricevuti:", response.data);
+    // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
+    response.data.forEach(item => {
+          if ('event_type' in item) {
+            const newEventInfo = new EventInfo(item);
+            console.log(newEventInfo);
+            dataEventInfo.value.push(newEventInfo);
+            console.log("EventInfo", dataEventInfo.value);
+          } else {
+            console.log("Unknown Object", response.data)
+          }
+    });
+  }).catch(error => {
+    console.error("Errore durante la richiesta Axios:", error);
+  });
+
+  axios.get<AllowedData>("/api/callREST/getEvent").then((response: AxiosResponse<AllowedData>) => {
+    console.log("Risposta da Axios:", response);
+    console.log("Dati ricevuti:", response.data);
+    // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
+    const item = response.data;
+    if ('event_type' in item) {
+      const newEventInfo = new EventInfo(item);
+      console.log(newEventInfo);
+      dataEventInfo.value.push(newEventInfo);
+      console.log("EventInfo", dataEventInfo.value);
+    } else {
+      console.log("Unknown Object", response.data)
+    }
+  }).catch(error => {
+    console.error("Errore durante la richiesta Axios:", error);
+  });
 
 </script>
 
 <template>
+  <ul v-if="dataEventInfo.length > 0">
+    <li v-for="(item, index) in dataEventInfo" :key="index">
+      Item {{ index }}: <br/>
+      {{ item }}
+      <hr>
+    </li>
+  </ul>
   <ul v-if="dataVenue.length > 0">
     <li v-for="(item, index) in dataVenue" :key="index">
       Item {{ index }}: <br/>
       {{ item }}
-      <button @click="createVenue(item)">Crea Venue</button>
       <hr>
     </li>
   </ul>
   <div v-else>
-    Errore: nessun elemento letto dalla richiesta HTTP <!-- non ci sarebbe bisogno perchè già in console spunta l'errore -->
+    Errore: nessun elemento letto dalla richiesta HTTP <!-- non ci sarebbe bisogno perché già in console spunta l'errore -->
   </div>
 </template>
 
