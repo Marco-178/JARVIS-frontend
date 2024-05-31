@@ -9,11 +9,14 @@ import 'leaflet/dist/leaflet.js'
 import Geocoder from 'leaflet-control-geocoder';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css'
 import 'leaflet-control-geocoder/dist/Control.Geocoder.js'
+//import {dataVenue} from './BackendInteract.vue';
 
 const confetti = new JSConfetti();
 let mapContainer = ref<HTMLElement>();
 
 let map: L.Map;
+let indirizzo: string;
+//let venue: dataVenue;
 
 onMounted(initializeMap);
 
@@ -58,21 +61,6 @@ function findAddress(address: string) {
   });
 }
 
-function findAddressV2(){
-  const geocoder = new Geocoder({
-    defaultMarkGeocode: false
-  }).addTo(map);
-  geocoder.on('markgeocode', (e: any) => {
-    const center = e.geocode.center;
-    map.setView([center.lat, center.lng], 30);
-    let marker = L.marker(center).addTo(map)
-        .bindPopup(e.geocode.name)
-        .openPopup();
-    marker.on('click', onMapClick)
-  })
-}
-
-
 function onMapClick(e: any){
     alert("You clicked the map at " + e.latlng);
   }
@@ -85,15 +73,15 @@ function onMapClick(e: any){
     <section class="item-disposition">
       <!-- Box verde che comprende form e mappa -->
       <div style="order: 2"></div>
-      <input type="text" name="ricerca" placeholder="Luogo da cercare">
-      <button @click="findAddress('via San Romano, Ferrara')">Cerca</button><br> <!-- 44.8328, 11.6178 San Romano -->
-      <button @click="findAddressV2()">CercaV2</button><br> <!-- 44.8328, 11.6178 San Romano -->
+      <input v-model="indirizzo" type="text" name="ricerca" placeholder="Indirizzo da cercare">
+      <button @click="findAddress(indirizzo)">Cerca</button><br> <!-- 44.8328, 11.6178 San Romano -->
       <div ref="mapContainer" id="map"/>
     </section>
     <section class="item-disposition booking-box">
       <!-- Box azzurra che contiene prenotazione -->
       <div style="order: 3"></div>
       <h1>Informazioni luogo</h1>
+      <h2></h2>
       <button @click="bookEvent">Prenota</button>
     </section>
   </article>
