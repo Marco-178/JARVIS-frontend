@@ -1,18 +1,18 @@
-<script setup lang="ts">
-
-</script>
-
 <template>
   <nav>
     <ul>
-      <li><a href="./MainPage.vue">Home</a></li>
-      <li><a href="./PrenotationsPage.vue">Prenotazioni</a></li>
+      <li>
+        <router-link to="/">Home</router-link> <!-- TODO: possibile evitare che ricarichi la pagina? -->
+      </li>
+      <li>
+        <router-link to="/prenotations" class="nav ul li">Prenotazioni</router-link>
+      </li>
     </ul>
   </nav>
 </template>
 
 <style scoped>
-nav ul {
+nav ul { /* TODO: quando si fa click un un link deve rimanere "cliccato" il box (cioè rimane evidenziato e il testo sottolineato ad esempio) */
   list-style: none;
   padding:0;
   margin:0;

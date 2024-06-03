@@ -99,6 +99,7 @@
     }
   }
 
+  // ma a che ci serve la chiamata al DB ????? Visto che ci serve solo REST
   axios.get<AllowedData>("/api/database/ls").then((response: AxiosResponse<AllowedData>) => {
     console.log("Risposta da Axios:", response);
     console.log("Dati ricevuti:", response.data);

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import BackendInteract from '@/components/BackendInteract.vue'
-import Header from "@/components/Header.vue";
 import Navbar from "@/components/Navbar.vue";
 import MainPage from "@/components/MainPage.vue";
 </script>
@@ -14,8 +13,7 @@ import MainPage from "@/components/MainPage.vue";
   </header>
 
   <main>
-    <MainPage/>
-    <BackendInteract/>
+    <router-view></router-view>
   </main>
 </template>
 
