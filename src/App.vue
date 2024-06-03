@@ -8,7 +8,6 @@ import MainPage from "@/components/MainPage.vue";
 
 <template>
   <header>
-    <h1>Homepage prenotazioni</h1>
     <div class="wrapper">
       <Navbar/>
     </div>

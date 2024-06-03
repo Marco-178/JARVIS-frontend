@@ -151,14 +151,12 @@ function onMapClick(e: any){
   alert("You clicked the map at " + e.latlng);
   map.setView([e.latlng.lat, e.latlng.lng], 30);
   for(let i=0; i < dataVenue.value.length; i++){
-    if(markerArray.value[i] != undefined && markerArray.value[i]!= null) {
-      if (e.latlng.lat == markerArray.value[i].latlon.lat) {
-        if (e.latlng.lng == markerArray.value[i].latlon.lon) {
-          for (let k = 0; k < dataVenue.value.length; k++) {
-            if (dataVenue.value[k].address === markerArray.value[i].address) {
-              printedVenue.value = dataVenue.value[k];
-              break;
-            }
+    if (e.latlng.lat == markerArray.value[i].latlon.lat) {
+      if (e.latlng.lng == markerArray.value[i].latlon.lon) {
+        for (let k = 0; k < dataVenue.value.length; k++) {
+          if (dataVenue.value[k].address === markerArray.value[i].address) {
+            printedVenue.value = dataVenue.value[k];
+            break;
           }
         }
       }
