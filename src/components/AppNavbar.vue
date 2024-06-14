@@ -1,11 +1,15 @@
+<script setup lang="ts">
+
+</script>
+
 <template>
   <nav>
     <ul>
       <li>
-        <router-link to="/">Home</router-link> <!-- TODO: possibile evitare che ricarichi la pagina? -->
+        <router-link to="/"><a>Home</a></router-link> <!-- TODO: possibile evitare che ricarichi la pagina? -->
       </li>
       <li>
-        <router-link to="/prenotations" class="nav ul li">Prenotazioni</router-link>
+        <router-link to="/prenotations"><a>Prenotazioni</a></router-link>
       </li>
     </ul>
   </nav>

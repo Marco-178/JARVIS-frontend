@@ -4,8 +4,17 @@ import HomePage from './components/MainPage.vue';
 import PrenotationsPage from './components/PrenotationsPage.vue';
 
 const routes: RouteRecordRaw[] = [
-    { path: '/', component: HomePage },
-    { path: '/prenotations', component: PrenotationsPage },
+    {
+        path: '/',
+        name: 'HomePage',
+        component: HomePage,
+        //meta: { keepAlive: true},
+    },
+    {
+        path: '/prenotations',
+        name: 'prenotations',
+        component: PrenotationsPage,
+    },
 ];
 
 const router = createRouter({

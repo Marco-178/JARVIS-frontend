@@ -5,7 +5,7 @@
 <template>
   <h1>Prenotazioni</h1>
   <div class="container">
-    <img src="/Errorimage.jpg" alt="Error image" class="image"/>
+    <img src="/ErrorImage.png" alt="Error image" class="image"/>
   </div>
 </template>
 

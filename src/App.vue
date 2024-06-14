@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import BackendInteract from '@/components/BackendInteract.vue'
-import Navbar from "@/components/Navbar.vue";
-import MainPage from "@/components/MainPage.vue";
+import Navbar from "@/components/AppNavbar.vue";
 </script>
 
 
