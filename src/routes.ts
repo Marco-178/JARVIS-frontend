@@ -8,7 +8,6 @@ const routes: RouteRecordRaw[] = [
         path: '/',
         name: 'HomePage',
         component: HomePage,
-        //meta: { keepAlive: true},
     },
     {
         path: '/prenotations',

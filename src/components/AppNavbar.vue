@@ -6,7 +6,7 @@
   <nav>
     <ul>
       <li>
-        <router-link to="/"><a>Home</a></router-link> <!-- TODO: possibile evitare che ricarichi la pagina? -->
+        <router-link to="/"><a>Home</a></router-link>
       </li>
       <li>
         <router-link to="/prenotations"><a>Prenotazioni</a></router-link>
