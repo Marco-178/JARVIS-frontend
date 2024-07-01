@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import JSConfetti from 'js-confetti'
 import L from 'leaflet'
-import { ref, inject } from 'vue'
+import { ref} from 'vue'
 import { onMounted } from 'vue';
 import axios, { type AxiosResponse} from 'axios';
 import 'leaflet/dist/leaflet.css'
@@ -18,13 +18,10 @@ let indirizzo: string;
 const dataVenue = ref<Venue[]>([]);
 const dataBooking = ref<Booking[]>([]);
 const markerArray = ref<markerAddress[]>([]);
-const selectedVenue = ref<Venue>(); // TODO cambiare selectedVenue in selectedVenue
+const selectedVenue = ref<Venue>();
+const selectedPersonnel = ref<Personnel[]>([]);
 const loadedMarkers = ref<number>(0);
-
-const dataPersonnel = inject('dataPersonnel', null);
-if (!dataPersonnel) {
-  console.error("Failed to inject 'dataPersonnel'");
-}
+const dataPersonnel = ref<Personnel[]>([]);
 
 class markerAddress{
   latlon: {
@@ -41,22 +38,23 @@ class markerAddress{
 
 interface Cache{
   markers: { [address: string]: any };
-  bookings: { [id: string]: any }; // TODO: capire se funziona address come chiave
+  bookings: { [id: string]: any };
 }
 
-const cache: Cache = {
+const cache: Cache = { // TODO impostare TTL?
   markers: {},
   bookings: {},
 };
 
 onMounted(async () => {
-  await axios.get<Venue[]>("/api/venue/ls").then((response: AxiosResponse<Venue[]>) => { // TODO sintetizzare questa chiamata in una funzione
+  // TODO 1: sintetizzare questa chiamata in una funzione e spostare in backend
+  await axios.get<Venue[]>("/api/venue/ls").then((response: AxiosResponse<Venue[]>) => { // TODO 2: utilizzare available al posto di ls
     console.log("Risposta da Axios: ", response);
     console.log("Dati ricevuti: ", response.data);
-    // TODO: è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
+    // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
     response.data.forEach(item => {
       if ('address' in item) {
-        const newVenue = new Venue(item);
+        const newVenue = new Venue(item.id, item.name, item.address, item.max_capacity, item.rent_cost, item.weekdayHours, item.weekendHours, item.closingDays, item.booking);
         console.log(newVenue);
         dataVenue.value.push(newVenue);
         console.log("Venue", dataVenue.value);
@@ -67,6 +65,7 @@ onMounted(async () => {
   }).catch(error => {
     console.error("Errore durante la richiesta Axios: ", error);
   });
+  getPersonnel(["intrattenimento"], "2024-05-16", "14:00:00", "18:00:00");
   initializeMap();
   loadBookings();
 });
@@ -121,7 +120,7 @@ function initializeMarker(address: string) { // disposizione del marker per l'in
     createMarker(address, bestResult);
   }).catch (error => {
     const endTime = performance.now();
-    console.error('Errore durante la geocodifica:', error); // TODO: se non trova il luogo manca la segnalazione all'utente
+    console.error('Errore durante la geocodifica:', error);
     console.log(`Richiesta "${address}" fallita dopo ${(endTime-startTime)/60} secondi`)
   });
 }
@@ -184,38 +183,62 @@ function loadBookings(){
 }
 
 function bookEvent(){
-  // TODO: controllo per posti già prenotati nella prenotazione precedente?
+  // TODO: controllo per posti già prenotati nella prenotazione precedente? FARE COMPONENTE A PARTE PER EVITARE RERENDERING
   confetti.addConfetti({
     confettiRadius: 7,
     confettiNumber: 700,
   })
   if(selectedVenue.value != undefined) { // assicuro Typescript che non sia undefined
-    const newBooking = new Booking(
-        dataBooking.value.length + 1,// TODO id da prelevare da una chiamata apposita axios al DB
-        "2024.04.25", // TODO mettere data passata da EventInfo
-        {start: "08:00:00", end: "12:00:00"},
-        selectedVenue.value,
-        new Personnel( // TODO prendere personale da DB??? o da utente??? Boh
-            "gigi spa",
-            3,
-            {start: "08:00:00", end: "12:00:00"},
-            {start: "08:00:00", end: "12:00:00"},
-            ["gigi"],
-        )
-    )
-    dataBooking.value.push(newBooking);
-    cache.bookings[newBooking.id] = newBooking;
-    localStorage.setItem('dataBooking', JSON.stringify(dataBooking.value));
-    alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n ID prenotazione:' + dataBooking.value[dataBooking.value.length - 1].id); // basterebbe anche newBooking.id ma teniamo così siamo sicuri che mette nell'array
+    if(selectedPersonnel.value != undefined) {
+      const newBooking = new Booking(
+          -1, // placeholder, in lettura il vero id viene recuperato dal DB e in scrittura sul backend mandiamo un oggetto senza id
+          "NNNMRC02M01D548F",
+          "2024.04.25", // TODO mettere data e ora passate da EventInfo
+          {start: "08:00:00", end: "12:00:00"},
+          selectedVenue.value,
+          selectedPersonnel.value,
+      )
+      dataBooking.value.push(newBooking);
+      console.log(dataBooking)
+      cache.bookings[newBooking.id] = newBooking; // TODO rimuovere forse i caching delle prenotazioni
+      localStorage.setItem('dataBooking', JSON.stringify(dataBooking.value));
+      alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
+    }
+    else{
+      console.error("selectedPersonnel non definita!")
+    }
   }
   else{
     console.error("selectedVenue non definito!")
   }
 }
 
+function getPersonnel(sector:string[], date:string, schedule_start:string, schedule_end:string){
+  let url = "/api/personnel/available?sectors=" + sector[0] + "," + sector[1] + "&date=" + date + "&start=" + schedule_start + "&end=" + schedule_end;
+  console.log(url);
+  axios.get<Personnel[]>(url).then((response: AxiosResponse<Personnel[]>) => { // TODO rifare quando verranno implementati i servizi REST sul backend
+    console.log("Risposta da Axios: ", response);
+    console.log("Dati ricevuti: ", response.data);
+    // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
+    response.data.forEach(item => {
+      if ('sector' in item) {
+        const newPersonnel = new Personnel(item.name, item.hourly_cost, item.weekdayHours, item.weekendHours, item.sector);
+        console.log(newPersonnel);
+        dataPersonnel.value.push(newPersonnel);
+        console.log("Personnel", dataPersonnel.value);
+      } else {
+        console.log("Unknown Object", response.data);
+      }
+    });
+  }).catch(error => {
+    console.error("Errore durante la richiesta Axios: ", error);
+  });
+}
+
 </script>
 
 <template>
+  <title>Home</title>
   <article class="disposition">
     <section class="item-disposition">
       <div style="order: 2"></div>
@@ -227,8 +250,20 @@ function bookEvent(){
       <div style="order: 3"></div>
       <h1 v-if="selectedVenue">{{ selectedVenue.name }}</h1>
       <h2 v-if="selectedVenue">{{ selectedVenue.address}} </h2>
-      {{dataBooking.length}}
-      <!--h2 v-if="selectedVenue">{{selectedVenue.rent_cost}}</h2-->
+      <h2 v-if="selectedVenue">{{ selectedVenue.rent_cost}} </h2>
+      <div v-if="dataPersonnel.length != 0">
+        <label> Selezionare il personale per l'evento :</label>
+        <br>
+        <form @submit.prevent="bookEvent">
+          <div v-for="option in dataPersonnel" :key="option.name">
+            <input type="checkbox" v-model="selectedPersonnel" :value="option"/>
+            <span>{{ option.name }}, {{ option.hourly_cost }}</span>
+          </div>
+        </form>
+      </div>
+      <div v-else>
+        <p> Nessun personale disponibile per il giorno e ora scelti </p> <!-- TODO per sveva: da EventInfo ci serve {{date}}, orario: {{schedule_start}}, {{schedule_end}} -->
+      </div>
       <button @click="bookEvent">Prenota</button>
     </section>
   </article>

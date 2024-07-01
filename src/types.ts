@@ -15,31 +15,33 @@ export class Venue{
     closingDays: string[];
     booking: Booking;
 
-    constructor(venue:Venue) { // TODO modificare costruttore e codici che lo usano
-        this.id = venue.id;
-        this.name = venue.name;
-        this.address = venue.address;
-        this.max_capacity = venue.max_capacity;
-        this.rent_cost = venue.rent_cost;
-        this.weekdayHours = venue.weekdayHours;
-        this.weekendHours = venue.weekendHours;
-        this.closingDays = venue.closingDays;
-        this.booking = venue.booking;
+    constructor(id:number, name:string, address:string, max_capacity:number, rent_cost:number, weekdayHours:{start:string, end:string;}, weekendHours:{start:string,end: string }, closingDays: string[], booking: Booking) { // TODO modificare costruttore e codici che lo usano
+        this.id = id;
+        this.name = name;
+        this.address = address;
+        this.max_capacity = max_capacity;
+        this.rent_cost = rent_cost;
+        this.weekdayHours = weekdayHours;
+        this.weekendHours = weekendHours;
+        this.closingDays = closingDays;
+        this.booking = booking;
     }
 }
 
 export class Booking{
     id: number;
+    codice_fiscale: string;
     date: string;
     duration: {
         start: string;
         end: string;
     };
     venue: Venue;
-    personnel: Personnel;
+    personnel: Personnel[];
 
-    constructor(id:number, date:string, duration:{start:string, end:string}, venue:Venue, personnel:Personnel) {
+    constructor(id:number, codice_fiscale:string, date:string, duration:{start:string, end:string}, venue:Venue, personnel:Personnel[]) {
         this.id = id;
+        this.codice_fiscale = codice_fiscale
         this.date = date;
         this.duration = duration;
         this.venue = venue;

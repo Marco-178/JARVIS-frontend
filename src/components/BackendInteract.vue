@@ -28,7 +28,7 @@
             dataPersonnel.value.push(new Personnel(item.name, item.hourly_cost, item.weekdayHours, item.weekendHours, item.sector));
             console.log("Personnel", dataPersonnel.value);
           } else if ('duration' in item) {
-            dataBooking.value.push(new Booking(item.id, item.date, item.duration, item.venue, item.personnel));
+            dataBooking.value.push(new Booking(item.id, item.codice_fiscale, item.date, item.duration, item.venue, item.personnel));
             console.log("Personnel", dataPersonnel.value);
           } else {
             console.log("Unknown Object", response.data)
