@@ -7,12 +7,12 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/',
         name: 'HomePage',
-        component: HomePage,
+        component: PrenotationsPage,
     },
     {
         path: '/prenotations',
         name: 'prenotations',
-        component: PrenotationsPage,
+        component: HomePage,
     },
 ];
 

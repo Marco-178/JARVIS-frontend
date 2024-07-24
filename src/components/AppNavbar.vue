@@ -6,10 +6,10 @@
   <nav>
     <ul>
       <li>
-        <router-link to="/"><a>Home</a></router-link>
+        <router-link to="/"><a>Prenotazioni</a></router-link>
       </li>
       <li>
-        <router-link to="/prenotations"><a>Prenotazioni</a></router-link>
+        <router-link to="/prenotations"><a>Nuova prenotazione</a></router-link>
       </li>
     </ul>
   </nav>

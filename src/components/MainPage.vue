@@ -8,6 +8,8 @@ import 'leaflet/dist/leaflet.css'
 import 'leaflet/dist/leaflet.js'
 import BackendInteract from '@/components/BackendInteract.vue'
 import { Venue, Booking, Personnel} from '@/types'
+import "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js";
+import "https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js";
 
 const confetti = new JSConfetti();
 const mapContainer = ref<HTMLElement>();
@@ -166,7 +168,7 @@ function onMapClick(e: any){
 }
 
 function updateGeocodingStatusBar(){ // TODO creare grafica loading bar e caricarla nel template
-  loadedMarkers.value = dataVenue.value.length - (dataVenue.value.length - markerArray.value.length);
+  loadedMarkers.value = (markerArray.value.length) / (dataVenue.value.length) * 100;
 }
 
 function loadBookings(){
@@ -238,6 +240,8 @@ function getPersonnel(sector:string[], date:string, schedule_start:string, sched
 </script>
 
 <template>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
   <title>Home</title>
   <article class="disposition">
     <section class="item-disposition">
@@ -245,18 +249,26 @@ function getPersonnel(sector:string[], date:string, schedule_start:string, sched
       <input v-model="indirizzo" type="text" name="ricerca" placeholder="Indirizzo da cercare">
       <button @click="findAddress(indirizzo)">Cerca</button><br>
       <div ref="mapContainer" id="map"/>
+      <div v-if="loadedMarkers < 100" class="progress">
+        <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" :style="{width: loadedMarkers + '%'}">
+          Caricamento luoghi: {{loadedMarkers.toFixed(1)}}%
+        </div>
+      </div> 
     </section>
     <section class="item-disposition booking-box" v-if="selectedVenue">
       <div style="order: 3"></div>
       <h1 v-if="selectedVenue">{{ selectedVenue.name }}</h1>
-      <h2 v-if="selectedVenue">{{ selectedVenue.address}} </h2>
-      <h2 v-if="selectedVenue">{{ selectedVenue.rent_cost}} </h2>
+      <h2 v-if="selectedVenue">Indirizzo: {{ selectedVenue.address}} </h2>
+      <h2 v-if="selectedVenue">Costo orario: {{ selectedVenue.rent_cost}} </h2>
       <div v-if="dataPersonnel.length != 0">
         <label> Selezionare il personale per l'evento :</label>
         <br>
         <form @submit.prevent="bookEvent">
-          <div v-for="option in dataPersonnel" :key="option.name">
-            <input type="checkbox" v-model="selectedPersonnel" :value="option"/>
+          <div v-for="(option, index) in dataPersonnel" :key="index">
+            <input type="checkbox" v-model="selectedPersonnel" :value="option">
+            <!--button type="button" data-toggle="collapse" :data-target="#'personnel'+index">{{option.name}}</button>
+              <div :id="'personnel'+ index" class="collapse">{{ option.hourly_cost }}</div-->
+            </input>
             <span>{{ option.name }}, {{ option.hourly_cost }}</span>
           </div>
         </form>
