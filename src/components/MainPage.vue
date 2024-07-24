@@ -7,7 +7,7 @@ import axios, { type AxiosResponse} from 'axios';
 import 'leaflet/dist/leaflet.css'
 import 'leaflet/dist/leaflet.js'
 import BackendInteract from '@/components/BackendInteract.vue'
-import { Venue, Booking, Personnel} from '@/types'
+import { Venue, Booking, Personnel, EventInfo } from '@/types'
 import "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js";
 import "https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js";
 
@@ -19,11 +19,12 @@ let indirizzo: string;
 
 const dataVenue = ref<Venue[]>([]);
 const dataBooking = ref<Booking[]>([]);
+const dataPersonnel = ref<Personnel[]>([]);
+const dataEventInfo = ref<EventInfo>(new EventInfo( 2, 'matrimonio', '2024-08-01', '11:00:00', '14:00:00', 100));
 const markerArray = ref<markerAddress[]>([]);
 const selectedVenue = ref<Venue>();
 const selectedPersonnel = ref<Personnel[]>([]);
 const loadedMarkers = ref<number>(0);
-const dataPersonnel = ref<Personnel[]>([]);
 
 class markerAddress{
   latlon: {
@@ -49,8 +50,23 @@ const cache: Cache = { // TODO impostare TTL?
 };
 
 onMounted(async () => {
+  await axios.get<EventInfo>("/api/callREST/getEvent").then((response: AxiosResponse<EventInfo>) => {
+    console.log("Risposta da Axios:", response);
+    console.log("Dati ricevuti:", response.data);
+    // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
+    if('event_type' in response.data){
+      dataEventInfo.value = response.data;
+      console.log(dataEventInfo);
+      console.log("EventInfo aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", dataEventInfo.value);
+    } else {
+      console.log("Unknown Object", response.data)
+    }
+  }).catch(error => {
+    console.error("Errore durante la richiesta Axios:", error);
+  });
+  console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", dataEventInfo);
   // TODO 1: sintetizzare questa chiamata in una funzione e spostare in backend
-  await axios.get<Venue[]>("/api/venue/ls").then((response: AxiosResponse<Venue[]>) => { // TODO 2: utilizzare available al posto di ls
+  await axios.get<Venue[]>("/api/venue/available?date=" + dataEventInfo.value.date + "&start=" + dataEventInfo.value.schedule_start + "&end=" + dataEventInfo.value.schedule_end).then((response: AxiosResponse<Venue[]>) => { // TODO 2: utilizzare available al posto di ls
     console.log("Risposta da Axios: ", response);
     console.log("Dati ricevuti: ", response.data);
     // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
@@ -67,7 +83,7 @@ onMounted(async () => {
   }).catch(error => {
     console.error("Errore durante la richiesta Axios: ", error);
   });
-  getPersonnel(["intrattenimento"], "2024-05-16", "14:00:00", "18:00:00");
+  getPersonnel("intrattenimento", "2050:08:01", "15:30:00", "16:00:00"); //TODO prendere i parametri da REST
   initializeMap();
   loadBookings();
 });
@@ -167,7 +183,7 @@ function onMapClick(e: any){
   }
 }
 
-function updateGeocodingStatusBar(){ // TODO creare grafica loading bar e caricarla nel template
+function updateGeocodingStatusBar(){
   loadedMarkers.value = (markerArray.value.length) / (dataVenue.value.length) * 100;
 }
 
@@ -195,8 +211,8 @@ function bookEvent(){
       const newBooking = new Booking(
           -1, // placeholder, in lettura il vero id viene recuperato dal DB e in scrittura sul backend mandiamo un oggetto senza id
           "NNNMRC02M01D548F",
-          "2024.04.25", // TODO mettere data e ora passate da EventInfo
-          {start: "08:00:00", end: "12:00:00"},
+          dataEventInfo.value.date, // TODO mettere data e ora passate da EventInfo
+          {start: dataEventInfo.value.schedule_start, end: dataEventInfo.value.schedule_end},
           selectedVenue.value,
           selectedPersonnel.value,
       )
@@ -215,8 +231,10 @@ function bookEvent(){
   }
 }
 
-function getPersonnel(sector:string[], date:string, schedule_start:string, schedule_end:string){
-  let url = "/api/personnel/available?sectors=" + sector[0] + "," + sector[1] + "&date=" + date + "&start=" + schedule_start + "&end=" + schedule_end;
+function getPersonnel(event_type:string, date:string, schedule_start:string, schedule_end:string){
+  let url = "/api/personnel/available?sectors=intrattenimento&date=2050-03-24&start=14:00:00&end=18:00:00"
+  //let url = "/api/personnel/ls";
+  //let url = "/api/personnel/available?sectors=" + event_type + "&date=" + date + "&start=" + schedule_start + "&end=" + schedule_end;
   console.log(url);
   axios.get<Personnel[]>(url).then((response: AxiosResponse<Personnel[]>) => { // TODO rifare quando verranno implementati i servizi REST sul backend
     console.log("Risposta da Axios: ", response);
@@ -265,10 +283,9 @@ function getPersonnel(sector:string[], date:string, schedule_start:string, sched
         <br>
         <form @submit.prevent="bookEvent">
           <div v-for="(option, index) in dataPersonnel" :key="index">
-            <input type="checkbox" v-model="selectedPersonnel" :value="option">
+            <input type="checkbox" v-model="selectedPersonnel" :value="option"/>
             <!--button type="button" data-toggle="collapse" :data-target="#'personnel'+index">{{option.name}}</button>
               <div :id="'personnel'+ index" class="collapse">{{ option.hourly_cost }}</div-->
-            </input>
             <span>{{ option.name }}, {{ option.hourly_cost }}</span>
           </div>
         </form>

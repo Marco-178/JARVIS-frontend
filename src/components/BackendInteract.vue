@@ -20,7 +20,7 @@
     // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
     response.data.forEach(item => {
           if ('address' in item) {
-            const newVenue = new Venue(item);
+            const newVenue = new Venue(item.id, item.name, item.address, item.max_capacity, item.rent_cost, item.weekdayHours, item.weekendHours, item.closingDays, item.booking);
             console.log(newVenue);
             dataVenue.value.push(newVenue);
             console.log("Venue", dataVenue.value);
@@ -38,7 +38,7 @@
     console.error("Errore durante la richiesta Axios:", error);
   });
 
-  axios.get<AllowedData>("/api/callREST/getEvents").then((response: AxiosResponse<AllowedData>) => {
+  /*axios.get<AllowedData>("/api/callREST/getEvents").then((response: AxiosResponse<AllowedData>) => {
     console.log("Risposta da Axios:", response);
     console.log("Dati ricevuti:", response.data);
     // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
@@ -72,7 +72,7 @@
     });
   }).catch(error => {
     console.error("Errore durante la richiesta Axios:", error);
-  });
+  });*/
 </script>
 
 <template>

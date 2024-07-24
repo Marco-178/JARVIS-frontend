@@ -79,12 +79,12 @@ export class EventInfo{
     schedule_end: string;
     max_participants: number;
 
-    constructor(eventInfo:EventInfo) { // TODO modificare costruttore e codici che lo usano
-        this.event_id = eventInfo.event_id;
-        this.event_type = eventInfo.event_type;
-        this.date = eventInfo.date;
-        this.schedule_start = eventInfo.schedule_start;
-        this.schedule_end = eventInfo.schedule_end;
-        this.max_participants = eventInfo.max_participants;
+    constructor(event_id:number, event_type:string, date:string, schedule_start:string, schedule_end:string, max_participants:number) {
+        this.event_id = event_id;
+        this.event_type = event_type;
+        this.date = date;
+        this.schedule_start = schedule_start;
+        this.schedule_end = schedule_end;
+        this.max_participants = max_participants;
     }
 }
