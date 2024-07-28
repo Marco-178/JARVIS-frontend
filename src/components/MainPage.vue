@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import JSConfetti from 'js-confetti'
 import L from 'leaflet'
-import { ref} from 'vue'
-import { onMounted } from 'vue';
+import {ref, watch} from 'vue'
+import {onMounted} from 'vue';
 import axios, { type AxiosResponse} from 'axios';
 import 'leaflet/dist/leaflet.css'
 import 'leaflet/dist/leaflet.js'
 import BackendInteract from '@/components/BackendInteract.vue'
-import { Venue, Booking, Personnel, EventInfo } from '@/types'
+import {Venue, Booking, Personnel, EventInfo} from '@/types'
 import "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js";
 import "https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js";
 
@@ -32,57 +32,42 @@ class markerAddress{
     lon: number;
   };
   address: string;
-
   constructor(lat: number, lon: number, address: string){
     this.latlon = {lat, lon};
     this.address = address;
   }
 }
 
-interface Cache{
-  markers: { [address: string]: any };
-  bookings: { [id: string]: any };
-}
-
-const cache: Cache = { // TODO impostare TTL?
-  markers: {},
-  bookings: {},
-};
-
 onMounted(async () => {
   await axios.get<EventInfo>("/api/callREST/getEvent").then((response: AxiosResponse<EventInfo>) => {
     console.log("Risposta da Axios:", response);
-    console.log("Dati ricevuti:", response.data);
-    // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
+    console.log("Evento ricevuto:", response.data);
     if('event_type' in response.data){
       dataEventInfo.value = response.data;
-      console.log(dataEventInfo);
-      console.log("EventInfo aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", dataEventInfo.value);
     } else {
       console.log("Unknown Object", response.data)
     }
   }).catch(error => {
     console.error("Errore durante la richiesta Axios:", error);
   });
-  console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", dataEventInfo);
   // TODO 1: sintetizzare questa chiamata in una funzione e spostare in backend
-  await axios.get<Venue[]>("/api/venue/available?date=" + dataEventInfo.value.date + "&start=" + dataEventInfo.value.schedule_start + "&end=" + dataEventInfo.value.schedule_end).then((response: AxiosResponse<Venue[]>) => { // TODO 2: utilizzare available al posto di ls
+  await axios.get<Venue[]>("/api/venue/available?date=" + dataEventInfo.value.date + "&start=" + dataEventInfo.value.schedule_start + "&end=" + dataEventInfo.value.schedule_end).then((response: AxiosResponse<Venue[]>) => {
     console.log("Risposta da Axios: ", response);
-    console.log("Dati ricevuti: ", response.data);
+    console.log("Luogo ricevuto: ", response.data);
     // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
     response.data.forEach(item => {
       if ('address' in item) {
         const newVenue = new Venue(item.id, item.name, item.address, item.max_capacity, item.rent_cost, item.weekdayHours, item.weekendHours, item.closingDays, item.booking);
-        console.log(newVenue);
         dataVenue.value.push(newVenue);
-        console.log("Venue", dataVenue.value);
       } else {
         console.log("Unknown Object", response.data);
       }
     });
   }).catch(error => {
     console.error("Errore durante la richiesta Axios: ", error);
+    // TODO segnalare errore del server; non è possibile recuperare i luoghi, print errore specifico e codice
   });
+  // TODO segnalare se non ci sono luoghi disponibili per l'evento alla data x e alle ore y e z
   //getPersonnel("tecnologia", "2025-02-04", "15:18:33", "16:26:24");
   getPersonnel(dataEventInfo.value.event_type, dataEventInfo.value.date, dataEventInfo.value.schedule_start, dataEventInfo.value.schedule_end); //TODO prendere i parametri da REST
   initializeMap();
@@ -101,54 +86,55 @@ function initializeMap(){
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(map);
   }
-  for(let i=0; i < dataVenue.value.length; i++){
-    initializeMarker(dataVenue.value[i].address);
-  }
+  initializeMarkers();
 }
 
-function initializeMarker(address: string) { // disposizione del marker per l'indirizzo corrispondente
-  if(cache.markers[address]){
-    console.log(`Caricamento cache per "${address}"`)
-    const cachedData = cache.markers[address];
-    createMarker(address, cachedData);
-    return;
-  }
-  const cachedData = localStorage.getItem(address);
-  if(cachedData){
-    console.log(`Caricamento localStorage per "${address}"`); // può essere che metta due volte il marker se è salvato sia su cache che su localStorage (mettere un controllo?)
-    const parsedData = JSON.parse(cachedData)
-    cache.markers[address] = parsedData;
-    createMarker(address, parsedData);
-    return;
-  }
-  const startTime = performance.now();
-  axios.get(
-    'https://nominatim.openstreetmap.org/search',
-    {
-      params: {
-        q: address,
-        format: 'json'
-      },
+async function initializeMarkers(){
+  const promises = dataVenue.value.map( async (venue) => {
+    const address = venue.address;
+    const cachedData = localStorage.getItem(address);
+    if(cachedData){
+      console.log(`Caricamento localStorage per la geocodifica di "${address}"`);
+      const parsedData = JSON.parse(cachedData)
+      createMarker(address, parsedData);
+      return;
     }
-  ).then((response) =>{
-    const endTime = performance.now();
-    console.log(`Richiesta "${address}" terminata con successo in ${(endTime-startTime)/60} secondi`)
-    const bestResult = response.data[0];
-    cache.markers[address] = bestResult;
-    localStorage.setItem(address, JSON.stringify(bestResult));
-    createMarker(address, bestResult);
-  }).catch (error => {
-    const endTime = performance.now();
-    console.error('Errore durante la geocodifica:', error);
-    console.log(`Richiesta "${address}" fallita dopo ${(endTime-startTime)/60} secondi`)
+    const startTime = performance.now();
+    try{
+      const response = await axios.get(
+        'https://nominatim.openstreetmap.org/search',
+        {
+          params: {
+            q: address,
+            format: 'json'
+          },
+        });
+        const endTime = performance.now();
+        console.log(`Richiesta "${address}" terminata con successo in ${(endTime-startTime)/1000} secondi`)
+        if(response.data && response.data.length > 0) {
+          const bestResult = response.data[0];
+          localStorage.setItem(address, JSON.stringify(bestResult));
+          createMarker(address, bestResult);
+        }
+        else{
+          console.error("Nessun risultato trovato per '${address}'");
+        }
+    }
+    catch (error) {
+      const endTime = performance.now();
+      console.error('Errore durante la geocodifica:', error);
+      console.log(`Richiesta "${address}" fallita dopo ${(endTime-startTime)/1000} secondi`)
+    };
   });
+  await Promise.all(promises)
+  console.log("Fine richieste di geocodifica")
 }
 
 function createMarker(address:string, result:any){
   const newMarker = new markerAddress(result.lat, result.lon, address);
   markerArray.value.push(newMarker);
   updateGeocodingStatusBar();
-  let marker = L.marker([result.lat, result.lon]).addTo(map).bindPopup(result.display_name);
+  let marker = L.marker([result.lat, result.lon]).addTo(map).bindPopup(`<div class="popup-text">${result.display_name}</div>`);
   marker.on('click', onMapClick);
 }
 
@@ -189,11 +175,6 @@ function updateGeocodingStatusBar(){
 }
 
 function loadBookings(){
-  console.log("cache.bookings: ", cache.bookings)
-  for(const key in cache.bookings){ //  if (hasOwnProperty.call(cache.bookings, key)) per escludere proprietà ereditate (??)
-    console.log(`Caricamento cache per prenotazione id."${key}"`)
-    dataBooking.value.push(cache.bookings[key]);
-  }
   const savedBookings = localStorage.getItem('dataBooking');
   if (savedBookings) {
     console.log('Caricamento localStorage per prenotazioni');
@@ -219,7 +200,6 @@ function bookEvent(){
       )
       dataBooking.value.push(newBooking);
       console.log(dataBooking)
-      cache.bookings[newBooking.id] = newBooking; // TODO rimuovere forse i caching delle prenotazioni
       localStorage.setItem('dataBooking', JSON.stringify(dataBooking.value));
       alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
     }
@@ -237,7 +217,7 @@ function getPersonnel(event_type:string, date:string, schedule_start:string, sch
   console.log(url);
   axios.get<Personnel[]>(url).then((response: AxiosResponse<Personnel[]>) => { // TODO rifare quando verranno implementati i servizi REST sul backend
     console.log("Risposta da Axios: ", response);
-    console.log("Dati ricevuti: ", response.data);
+    console.log("Personale ricevuti: ", response.data);
     // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
     response.data.forEach(item => {
       if ('sector' in item) {

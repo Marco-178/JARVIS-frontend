@@ -14,9 +14,7 @@ Le prenotazioni vengono salvate in DB uno a uno dal MainPage non appena si clicc
     response.data.forEach(item => {
       if ('id' in item) {
         const newBooking = new Booking(item.id, item.codice_fiscale, item.date, item.duration, item.venue, item.personnel);
-        console.log(newBooking);
         dataBooking.value.push(newBooking);
-        console.log("Booking", dataBooking.value);
       } else {
         console.log("Unknown Object", response.data);
       }

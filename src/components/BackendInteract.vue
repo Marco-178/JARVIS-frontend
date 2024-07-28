@@ -14,7 +14,7 @@
   provide('dataPersonnel', dataPersonnel);
 
   // ma a che ci serve la chiamata al DB ????? Visto che ci serve solo REST
-  axios.get<AllowedData>("/api/venue/ls").then((response: AxiosResponse<AllowedData>) => {
+  /*axios.get<AllowedData>("/api/venue/ls").then((response: AxiosResponse<AllowedData>) => {
     console.log("Risposta da Axios:", response);
     console.log("Dati ricevuti:", response.data);
     // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
@@ -36,7 +36,7 @@
     });
   }).catch(error => {
     console.error("Errore durante la richiesta Axios:", error);
-  });
+  });*/
 
   /*axios.get<AllowedData>("/api/callREST/getEvents").then((response: AxiosResponse<AllowedData>) => {
     console.log("Risposta da Axios:", response);
@@ -91,7 +91,7 @@
     </li>
   </ul>
   <div v-else>
-    Errore: nessun elemento letto dalla richiesta HTTP <!-- non ci sarebbe bisogno perché già in console spunta l'errore -->
+    Errore BackendInteract: nessun elemento letto dalla richiesta HTTP <!-- non ci sarebbe bisogno perché già in console spunta l'errore -->
   </div>
 </template>
 
