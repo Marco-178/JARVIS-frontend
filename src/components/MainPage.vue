@@ -83,7 +83,8 @@ onMounted(async () => {
   }).catch(error => {
     console.error("Errore durante la richiesta Axios: ", error);
   });
-  getPersonnel("intrattenimento", "2050:08:01", "15:30:00", "16:00:00"); //TODO prendere i parametri da REST
+  //getPersonnel("tecnologia", "2025-02-04", "15:18:33", "16:26:24");
+  getPersonnel(dataEventInfo.value.event_type, dataEventInfo.value.date, dataEventInfo.value.schedule_start, dataEventInfo.value.schedule_end); //TODO prendere i parametri da REST
   initializeMap();
   loadBookings();
 });
@@ -91,8 +92,8 @@ onMounted(async () => {
 function initializeMap(){
   if(mapContainer.value){
     map = L.map(mapContainer.value,{
-      center: [44.838215, 11.619852],
-      zoom: 13,
+      center: [42.838215, 12.619852],
+      zoom: 6,
       zoomControl: false,
     });
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -232,9 +233,7 @@ function bookEvent(){
 }
 
 function getPersonnel(event_type:string, date:string, schedule_start:string, schedule_end:string){
-  let url = "/api/personnel/available?sectors=intrattenimento&date=2050-03-24&start=14:00:00&end=18:00:00"
-  //let url = "/api/personnel/ls";
-  //let url = "/api/personnel/available?sectors=" + event_type + "&date=" + date + "&start=" + schedule_start + "&end=" + schedule_end;
+  let url = "/api/personnel/available?sectors=" + event_type + "&date=" + date + "&start=" + schedule_start + "&end=" + schedule_end;
   console.log(url);
   axios.get<Personnel[]>(url).then((response: AxiosResponse<Personnel[]>) => { // TODO rifare quando verranno implementati i servizi REST sul backend
     console.log("Risposta da Axios: ", response);
