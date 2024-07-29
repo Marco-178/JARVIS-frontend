@@ -203,7 +203,7 @@ function bookEvent(){
 <template>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-  <title>Home</title>
+  <title>Nuova Prenotazione</title>
   <article class="disposition">
     <section class="item-disposition">
       <div style="order: 2"></div>
