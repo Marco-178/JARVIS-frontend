@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import JSConfetti from 'js-confetti'
 import L from 'leaflet'
-import {ref, watch} from 'vue'
-import {onMounted} from 'vue';
+import {ref, onMounted} from 'vue'
 import axios, { type AxiosResponse} from 'axios';
 import 'leaflet/dist/leaflet.css'
 import 'leaflet/dist/leaflet.js'
@@ -25,6 +24,7 @@ const markerArray = ref<markerAddress[]>([]);
 const selectedVenue = ref<Venue>();
 const selectedPersonnel = ref<Personnel[]>([]);
 const loadedMarkers = ref<number>(0);
+const backendInteractRef = ref<InstanceType<typeof BackendInteract> | null>(null);
 
 class markerAddress{
   latlon: {
@@ -38,40 +38,31 @@ class markerAddress{
   }
 }
 
+function updateDataVenue(newData: Venue[]) {
+  dataVenue.value = newData;
+}
+
+function updateDataPersonnel(newData: Personnel[]) {
+  dataPersonnel.value = newData;
+}
+
+function updateDataBooking(newData: Booking[]) {
+  dataBooking.value = newData;
+}
+
+function updateDataEventInfo(newData: EventInfo) {
+  dataEventInfo.value = newData;
+}
+
 onMounted(async () => {
-  await axios.get<EventInfo>("/api/callREST/getEvent").then((response: AxiosResponse<EventInfo>) => {
-    console.log("Risposta da Axios:", response);
-    console.log("Evento ricevuto:", response.data);
-    if('event_type' in response.data){
-      dataEventInfo.value = response.data;
-    } else {
-      console.log("Unknown Object", response.data)
-    }
-  }).catch(error => {
-    console.error("Errore durante la richiesta Axios:", error);
-  });
-  // TODO 1: sintetizzare questa chiamata in una funzione e spostare in backend
-  await axios.get<Venue[]>("/api/venue/available?date=" + dataEventInfo.value.date + "&start=" + dataEventInfo.value.schedule_start + "&end=" + dataEventInfo.value.schedule_end).then((response: AxiosResponse<Venue[]>) => {
-    console.log("Risposta da Axios: ", response);
-    console.log("Luogo ricevuto: ", response.data);
-    // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
-    response.data.forEach(item => {
-      if ('address' in item) {
-        const newVenue = new Venue(item.id, item.name, item.address, item.max_capacity, item.rent_cost, item.weekdayHours, item.weekendHours, item.closingDays, item.booking);
-        dataVenue.value.push(newVenue);
-      } else {
-        console.log("Unknown Object", response.data);
-      }
-    });
-  }).catch(error => {
-    console.error("Errore durante la richiesta Axios: ", error);
-    // TODO segnalare errore del server; non è possibile recuperare i luoghi, print errore specifico e codice
-  });
-  // TODO segnalare se non ci sono luoghi disponibili per l'evento alla data x e alle ore y e z
-  //getPersonnel("tecnologia", "2025-02-04", "15:18:33", "16:26:24");
-  getPersonnel(dataEventInfo.value.event_type, dataEventInfo.value.date, dataEventInfo.value.schedule_start, dataEventInfo.value.schedule_end); //TODO prendere i parametri da REST
-  initializeMap();
-  loadBookings();
+  if (backendInteractRef.value) {
+    await backendInteractRef.value.fetchEventInfo();
+    await backendInteractRef.value.fetchVenues();
+    //getPersonnel("tecnologia", "2025-02-04", "15:18:33", "16:26:24");
+    await backendInteractRef.value.fetchPersonnel(dataEventInfo.value.event_type, dataEventInfo.value.date, dataEventInfo.value.schedule_start, dataEventInfo.value.schedule_end);
+    initializeMap();
+    loadBookings();
+  }
 });
 
 function initializeMap(){
@@ -124,7 +115,7 @@ async function initializeMarkers(){
       const endTime = performance.now();
       console.error('Errore durante la geocodifica:', error);
       console.log(`Richiesta "${address}" fallita dopo ${(endTime-startTime)/1000} secondi`)
-    };
+    }
   });
   await Promise.all(promises)
   console.log("Fine richieste di geocodifica")
@@ -188,50 +179,23 @@ function bookEvent(){
     confettiRadius: 7,
     confettiNumber: 700,
   })
-  if(selectedVenue.value != undefined) { // assicuro Typescript che non sia undefined
-    if(selectedPersonnel.value != undefined) {
-      const newBooking = new Booking(
-          -1, // placeholder, in lettura il vero id viene recuperato dal DB e in scrittura sul backend mandiamo un oggetto senza id
-          "NNNMRC02M01D548F",
-          dataEventInfo.value.date, // TODO mettere data e ora passate da EventInfo
-          {start: dataEventInfo.value.schedule_start, end: dataEventInfo.value.schedule_end},
-          selectedVenue.value,
-          selectedPersonnel.value,
-      )
-      dataBooking.value.push(newBooking);
-      console.log(dataBooking)
-      localStorage.setItem('dataBooking', JSON.stringify(dataBooking.value));
-      alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
-    }
-    else{
-      console.error("selectedPersonnel non definita!")
-    }
+  if(selectedVenue.value != undefined){ // assicuro Typescript
+    const newBooking = new Booking(
+        -1, // placeholder, in lettura il vero id viene recuperato dal DB e in scrittura sul backend mandiamo un oggetto senza id
+        "NNNMRC02M01D548F",
+        dataEventInfo.value.date, // TODO mettere data e ora passate da EventInfo
+        {start: dataEventInfo.value.schedule_start, end: dataEventInfo.value.schedule_end},
+        selectedVenue.value,
+        selectedPersonnel.value,
+    )
+    dataBooking.value.push(newBooking);
+    console.log(dataBooking)
+    localStorage.setItem('dataBooking', JSON.stringify(dataBooking.value));
+    alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
   }
   else{
     console.error("selectedVenue non definito!")
   }
-}
-
-function getPersonnel(event_type:string, date:string, schedule_start:string, schedule_end:string){
-  let url = "/api/personnel/available?sectors=" + event_type + "&date=" + date + "&start=" + schedule_start + "&end=" + schedule_end;
-  console.log(url);
-  axios.get<Personnel[]>(url).then((response: AxiosResponse<Personnel[]>) => { // TODO rifare quando verranno implementati i servizi REST sul backend
-    console.log("Risposta da Axios: ", response);
-    console.log("Personale ricevuti: ", response.data);
-    // è una soluzione semplice ma non scalabile quindi forse è meglio fare un confronto degli attributi
-    response.data.forEach(item => {
-      if ('sector' in item) {
-        const newPersonnel = new Personnel(item.name, item.hourly_cost, item.weekdayHours, item.weekendHours, item.sector);
-        console.log(newPersonnel);
-        dataPersonnel.value.push(newPersonnel);
-        console.log("Personnel", dataPersonnel.value);
-      } else {
-        console.log("Unknown Object", response.data);
-      }
-    });
-  }).catch(error => {
-    console.error("Errore durante la richiesta Axios: ", error);
-  });
 }
 
 </script>
@@ -270,13 +234,19 @@ function getPersonnel(event_type:string, date:string, schedule_start:string, sch
         </form>
       </div>
       <div v-else>
-        <p> Nessun personale disponibile per il giorno e ora scelti </p> <!-- TODO per sveva: da EventInfo ci serve {{date}}, orario: {{schedule_start}}, {{schedule_end}} -->
+        <p> Nessun personale disponibile per il giorno e ora scelti </p>
       </div>
       <button @click="bookEvent">Prenota</button>
     </section>
   </article>
   <br><br>
-  <BackendInteract/>
+  <BackendInteract
+      ref="backendInteractRef"
+      @update:dataVenue="updateDataVenue"
+      @update:dataPersonnel="updateDataPersonnel"
+      @update:dataBooking="updateDataBooking"
+      @update:dataEventInfo="updateDataEventInfo"
+  />
 </template>
 
 <style scoped>
