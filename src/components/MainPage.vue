@@ -208,7 +208,7 @@ function bookEvent(){
     <section class="item-disposition">
       <div style="order: 2"></div>
       <input v-model="indirizzo" type="text" name="ricerca" placeholder="Indirizzo da cercare">
-      <button @click="findAddress(indirizzo)">Cerca</button><br>
+      <button id="search-button" @click="findAddress(indirizzo)"><img src="/search.png" alt="cerca" height="20"/></button><br>
       <div ref="mapContainer" id="map"/>
       <div v-if="loadedMarkers < 100" class="progress">
         <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" :style="{width: loadedMarkers + '%'}">
@@ -275,5 +275,34 @@ function bookEvent(){
     align-content: center;
     align-items: flex-start;
     padding: 20px;
+  }
+
+  input[type='text'] {
+    border: solid hsla(160, 100%, 37%, 1) 2px;
+    border-radius: 5px;
+    padding: 5px;
+    margin: 5px 0;
+    margin-right: 5px;
+  }
+
+  input[type='text']:select {
+    
+  }
+
+  #search-button {
+    border: solid hsla(160, 100%, 37%, 1) 2px;
+    border-radius: 5px;
+    background-color: hsla(160, 100%, 37%, 1);
+    padding: 5px;
+    margin: 5px 0;
+    margin-right: 5px;
+    transition: 0.5s;
+  }
+
+  #search-button:hover {
+    border: solid hsla(160, 100%, 20%, 1) 2px;
+    border-radius: 5px;
+    background-color: hsla(160, 100%, 20%, 1);
+    transition: 0.5s;
   }
 </style>

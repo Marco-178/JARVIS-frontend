@@ -29,8 +29,17 @@ Le prenotazioni vengono salvate in DB uno a uno dal MainPage non appena si clicc
   <title>Prenotazioni</title>
   <h1>Prenotazioni</h1>
   <div v-if="dataBooking.length > 0">
-    <section v-for="booking in dataBooking" :key="booking.id">{{booking.venue.name}} <br> {{booking.venue.address}} <br> {{booking.venue.max_capacity}} <br> {{booking.venue.rent_cost}} <br> {{booking.date}} <br>
-      <div v-for="personnel in booking.personnel" :key="personnel.name">{{personnel.name}} <br> {{personnel.hourly_cost}}<hr> </div></section>
+    <section id="booking-info" v-for="booking in dataBooking" :key="booking.id">
+      <h1>{{booking.venue.name}}</h1>
+      {{booking.date}} dalle ore {{booking.duration.start}} alle ore {{booking.duration.end}} <br>
+      <strong>Indirizzo:</strong> {{booking.venue.address}} <br>
+      <strong>Capacità massima:</strong> {{booking.venue.max_capacity}} <br>
+      <strong>Costo:</strong> {{booking.venue.rent_cost}}€
+      <h2 v-if="booking.personnel.length > 0">Personale assunto:</h2>
+      <div v-for="personnel in booking.personnel" :key="personnel.name">
+        {{personnel.name}} - {{personnel.hourly_cost}}€ all'ora
+      </div>
+    </section>
   </div>
   <div v-else class="container">
     <img src="/ErrorImage.png" alt="Error image" class="image"/>
@@ -50,6 +59,28 @@ Le prenotazioni vengono salvate in DB uno a uno dal MainPage non appena si clicc
     max-width: 50%;
     max-height: 55%;
     object-fit: contain;
+  }
+
+  #booking-info {
+	  border: solid hsla(160, 100%, 37%, 1) 3px;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px 0;
+  }
+
+  #booking-info strong {
+    font-weight: bold;
+  }
+
+  #booking-info h1 {
+    color: hsla(160, 100%, 37%, 1);
+    font-weight: bold;
+    padding: 0;
+  }
+
+  #booking-info h2 {
+    font-size: 1.4em;
+    margin-top: 5px;
   }
 
 </style>
