@@ -34,9 +34,16 @@
   --color-text: var(--vt-c-text-light-1);
 
   --section-gap: 160px;
+
+  --highlight-color: hsl(160, 100%, 37%);
+
+  --navbar-bg: 	hsl(0, 0%, 95%);
+  --navbar-text-color: hsl(0, 0%, 20%);
+  --highlight-button-hover: hsla(160, 100%, 37%, 0.4);
+  --highlight-button-active: hsla(160, 100%, 37%, 0.8);
 }
 
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: dark) {
   :root {
     --color-background: var(--vt-c-black);
     --color-background-soft: var(--vt-c-black-soft);
@@ -47,6 +54,9 @@
 
     --color-heading: var(--vt-c-text-dark-1);
     --color-text: var(--vt-c-text-dark-2);
+
+    --navbar-bg: hsla(0, 0%, 95%, 0.27);
+    --navbar-text-color: hsl(0, 0%, 100%);
   }
 }
 

@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import type { RouteRecordRaw } from 'vue-router';
-import HomePage from './components/MainPage.vue';
-import PrenotationsPage from './components/PrenotationsPage.vue';
+import HomePage from './components/MapPage.vue';
+import PrenotationsPage from './components/BookingsPage.vue';
 
 const routes: RouteRecordRaw[] = [
     {

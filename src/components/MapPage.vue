@@ -2,13 +2,12 @@
 import JSConfetti from 'js-confetti'
 import L from 'leaflet'
 import {ref, onMounted} from 'vue'
-import axios, { type AxiosResponse} from 'axios';
-import 'leaflet/dist/leaflet.css'
-import 'leaflet/dist/leaflet.js'
+import axios from 'axios';
 import BackendInteract from '@/components/BackendInteract.vue'
-import {Venue, Booking, Personnel, EventInfo} from '@/types'
-import "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js";
-import "https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js";
+import {Venue, Booking, Personnel, EventInfo} from '@/types';
+
+import 'leaflet/dist/leaflet.js'
+import 'leaflet/dist/leaflet.css'
 
 const confetti = new JSConfetti();
 const mapContainer = ref<HTMLElement>();
@@ -81,15 +80,8 @@ function initializeMap(){
 }
 
 async function initializeMarkers(){
-  const promises = dataVenue.value.map( async (venue) => {
-    const address = venue.address;
-    const cachedData = localStorage.getItem(address);
-    if(cachedData){
-      console.log(`Caricamento localStorage per la geocodifica di "${address}"`);
-      const parsedData = JSON.parse(cachedData)
-      createMarker(address, parsedData);
-      return;
-    }
+  const maxRetries = 3;
+  const fetchGeocode = async(address:string, retries=0) => {
     const startTime = performance.now();
     try{
       const response = await axios.get(
@@ -114,11 +106,33 @@ async function initializeMarkers(){
     catch (error) {
       const endTime = performance.now();
       console.error('Errore durante la geocodifica:', error);
-      console.log(`Richiesta "${address}" fallita dopo ${(endTime-startTime)/1000} secondi`)
+      console.log(`Richiesta "${address}" fallita dopo ${(endTime-startTime)/1000} secondi`) // TODO: risolvere errore CORS https://chatgpt.com/share/2e188179-bf8f-477f-8664-f7ab0fffdfc7
+
+      if (retries < maxRetries){
+        console.log(`Riprovo la richiesta per "${address}". Tentativo ${retries + 1}`);
+        await fetchGeocode(address, retries + 1);
+      } else {
+        console.error(`Richiesta per "${address}" fallita dopo ${maxRetries} tentativi`); // TODO: segnalare errore a autente
+        const ghostMarker = new markerAddress(0, 0, address); // evita che la barra di caricamento si blocchi
+        markerArray.value.push(ghostMarker);
+        updateGeocodingStatusBar();
+      }
     }
+  };
+  const promises = dataVenue.value.map( async (venue) => {
+    const address = venue.address;
+    const cachedData = localStorage.getItem(address);
+    if (cachedData) {
+      console.log(`Caricamento localStorage per la geocodifica di "${address}"`);
+      const parsedData = JSON.parse(cachedData)
+      createMarker(address, parsedData);
+      return;
+    }
+    await fetchGeocode(address);
   });
-  await Promise.all(promises)
-  console.log("Fine richieste di geocodifica")
+  await Promise.all(promises);
+  updateGeocodingStatusBar(); // in caso non ci siano luoghi disponibili, non mostra la barra di caricamento
+  console.log("Fine richieste di geocodifica");
 }
 
 function createMarker(address:string, result:any){
@@ -162,7 +176,10 @@ function onMapClick(e: any){
 }
 
 function updateGeocodingStatusBar(){
-  loadedMarkers.value = (markerArray.value.length) / (dataVenue.value.length) * 100;
+  if(dataVenue.value.length == 0) loadedMarkers.value = 100;
+  else {
+    loadedMarkers.value = (markerArray.value.length) / (dataVenue.value.length) * 100;
+  }
 }
 
 function loadBookings(){
@@ -179,11 +196,11 @@ function bookEvent(){
     confettiRadius: 7,
     confettiNumber: 700,
   })
-  if(selectedVenue.value != undefined){ // assicuro Typescript
+  if(selectedVenue.value != undefined){
     const newBooking = new Booking(
         -1, // placeholder, in lettura il vero id viene recuperato dal DB e in scrittura sul backend mandiamo un oggetto senza id
         "NNNMRC02M01D548F",
-        dataEventInfo.value.date, // TODO mettere data e ora passate da EventInfo
+        dataEventInfo.value.date,
         {start: dataEventInfo.value.schedule_start, end: dataEventInfo.value.schedule_end},
         selectedVenue.value,
         selectedPersonnel.value,
@@ -191,6 +208,7 @@ function bookEvent(){
     dataBooking.value.push(newBooking);
     console.log(dataBooking)
     localStorage.setItem('dataBooking', JSON.stringify(dataBooking.value));
+    // TODO aggiunta prenotazione DB + segnalazione errore eventuale
     alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
   }
   else{
@@ -202,7 +220,6 @@ function bookEvent(){
 
 <template>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
   <title>Nuova Prenotazione</title>
   <article class="disposition">
     <section class="item-disposition">
@@ -211,7 +228,7 @@ function bookEvent(){
       <button id="search-button" @click="findAddress(indirizzo)"><img src="/search.png" alt="cerca" height="20"/></button><br>
       <div ref="mapContainer" id="map"/>
       <div v-if="loadedMarkers < 100" class="progress">
-        <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" :style="{width: loadedMarkers + '%'}">
+        <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" :style="{width: loadedMarkers + '%'}"> <!--  TODO: cambiare aria-valuenow-->
           Caricamento luoghi: {{loadedMarkers.toFixed(1)}}%
         </div>
       </div> 
@@ -250,7 +267,10 @@ function bookEvent(){
 </template>
 
 <style scoped>
-  #map{height: 580px; width: 580px;}
+  #map{
+    height: 580px; width: 580px;
+    border: solid var(--highlight-color) 2px;
+  }
 
   h1{
     font-size: 2em;
@@ -278,7 +298,7 @@ function bookEvent(){
   }
 
   input[type='text'] {
-    border: solid hsla(160, 100%, 37%, 1) 2px;
+    border: solid var(--highlight-color) 2px;
     border-radius: 5px;
     padding: 5px;
     margin: 5px 0;
@@ -286,13 +306,13 @@ function bookEvent(){
   }
 
   input[type='text']:select {
-    
+
   }
 
   #search-button {
-    border: solid hsla(160, 100%, 37%, 1) 2px;
+    border: solid var(--highlight-color) 2px;
     border-radius: 5px;
-    background-color: hsla(160, 100%, 37%, 1);
+    background-color: var(--highlight-color);
     padding: 5px;
     margin: 5px 0;
     margin-right: 5px;
@@ -300,9 +320,9 @@ function bookEvent(){
   }
 
   #search-button:hover {
-    border: solid hsla(160, 100%, 20%, 1) 2px;
+    border: solid var(--highlight-color) 2px;
     border-radius: 5px;
-    background-color: hsla(160, 100%, 20%, 1);
+    background-color: var(--highlight-color);
     transition: 0.5s;
   }
 </style>

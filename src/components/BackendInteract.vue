@@ -98,23 +98,10 @@
 </script>
 
 <template>
-
-  <ul v-if="dataEventInfo">
-    <li v-for="(item, index) in dataEventInfo" :key="index">
-      Item {{ index }}: <br/>
-      {{ item }}
-      <hr>
-    </li>
-  </ul>
   <ul v-if="dataVenue.length > 0">
-    <li v-for="(item, index) in dataVenue" :key="index">
-      Item {{ index }}: <br/>
-      {{ item }}
-      <hr>
-    </li>
   </ul>
   <div v-else>
-    Errore BackendInteract: nessun elemento letto dalla richiesta HTTP <!-- propagare l'errore a MainPage così da mostrare un messaggio di errore standardizzato -->
+    Errore BackendInteract: nessun elemento letto dalla richiesta HTTP <!-- TODO: propagare l'errore a MainPage così da mostrare un messaggio di errore standardizzato -->
   </div>
 </template>
 

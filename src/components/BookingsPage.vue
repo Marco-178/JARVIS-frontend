@@ -28,6 +28,9 @@ Le prenotazioni vengono salvate in DB uno a uno dal MainPage non appena si clicc
 <template>
   <title>Prenotazioni</title>
   <h1>Prenotazioni</h1>
+  <div style="display:block; text-align:center">
+    <button id="newBookingButton"> Esegui una nuova prenotazione </button>
+  </div>
   <div v-if="dataBooking.length > 0">
     <section id="booking-info" v-for="booking in dataBooking" :key="booking.id">
       <h1>{{booking.venue.name}}</h1>
@@ -61,9 +64,30 @@ Le prenotazioni vengono salvate in DB uno a uno dal MainPage non appena si clicc
     object-fit: contain;
   }
 
+  #newBookingButton{
+    background-color: var(--highlight-color);
+    border: solid transparent;
+    border-radius: 16px;
+    border-width: 0 0 4px;
+    color: #FFF;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    display:inline-block;
+    margin: 0 auto;
+    padding: 13px 22px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: filter .2s;
+    filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+  }
+
+  #newBookingButton:active {
+    border-width: 4px 0 0;
+  }
+
   #booking-info {
-	  border: solid hsla(160, 100%, 37%, 1) 3px;
-    border-radius: 10px;
+	  border: solid var(--highlight-color) 3px;
     padding: 10px;
     margin: 10px 0;
   }
