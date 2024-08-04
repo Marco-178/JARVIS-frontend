@@ -88,3 +88,11 @@ export class EventInfo{
         this.max_participants = max_participants;
     }
 }
+
+export class User{
+    codice_fiscale: string;
+
+    constructor(codice_fiscale: string){
+        this.codice_fiscale = codice_fiscale;
+    }
+}

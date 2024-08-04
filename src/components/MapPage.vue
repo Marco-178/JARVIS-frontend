@@ -2,9 +2,9 @@
 import JSConfetti from 'js-confetti'
 import L from 'leaflet'
 import {ref, onMounted} from 'vue'
-import axios from 'axios';
+import axios, {type AxiosResponse} from 'axios';
 import BackendInteract from '@/components/BackendInteract.vue'
-import {Venue, Booking, Personnel, EventInfo} from '@/types';
+import {Venue, Booking, Personnel, EventInfo, User} from '@/types';
 
 import 'leaflet/dist/leaflet.js'
 import 'leaflet/dist/leaflet.css'
@@ -19,6 +19,7 @@ const dataVenue = ref<Venue[]>([]);
 const dataBooking = ref<Booking[]>([]);
 const dataPersonnel = ref<Personnel[]>([]);
 const dataEventInfo = ref<EventInfo>(new EventInfo( 2, 'matrimonio', '2024-08-01', '11:00:00', '14:00:00', 100));
+const dataUser = ref<User>(new User('ALLGR2002123456'));
 const markerArray = ref<markerAddress[]>([]);
 const selectedVenue = ref<Venue>();
 const selectedPersonnel = ref<Personnel[]>([]);
@@ -53,6 +54,10 @@ function updateDataEventInfo(newData: EventInfo) {
   dataEventInfo.value = newData;
 }
 
+function updateDataUser(newData: User){
+  dataUser.value = newData;
+}
+
 onMounted(async () => {
   if (backendInteractRef.value) {
     await backendInteractRef.value.fetchEventInfo();
@@ -60,6 +65,7 @@ onMounted(async () => {
     //getPersonnel("tecnologia", "2025-02-04", "15:18:33", "16:26:24");
     await backendInteractRef.value.fetchPersonnel(dataEventInfo.value.event_type, dataEventInfo.value.date, dataEventInfo.value.schedule_start, dataEventInfo.value.schedule_end);
     initializeMap();
+    await backendInteractRef.value.fetchUser();
     loadBookings();
   }
 });
@@ -263,6 +269,7 @@ function bookEvent(){
       @update:dataPersonnel="updateDataPersonnel"
       @update:dataBooking="updateDataBooking"
       @update:dataEventInfo="updateDataEventInfo"
+      @update:dataUser="updateDataUser"
   />
 </template>
 

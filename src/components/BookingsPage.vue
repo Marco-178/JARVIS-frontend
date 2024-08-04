@@ -5,8 +5,10 @@ Le prenotazioni vengono salvate in DB uno a uno dal MainPage non appena si clicc
  */
   import {ref} from 'vue'
   import axios, {type AxiosResponse} from "axios";
-  import {Booking} from "@/types";
+  import {Booking, User} from "@/types";
+import BackendInteract from "@/components/BackendInteract.vue";
   const dataBooking = ref<Booking[]>([]);
+  const dataUser = ref<User>(new User('ALLGR2002123456'));
 
   axios.get<Booking[]>("api/booking/ls").then((response: AxiosResponse<Booking[]>) => { // TODO rifare quando verranno implementati i servizi REST sul backend, forse da spostare in BackendInteract e fare caching per ridurre tempo di attesa
     console.log("Risposta da Axios: ", response);
@@ -23,14 +25,15 @@ Le prenotazioni vengono salvate in DB uno a uno dal MainPage non appena si clicc
     console.error("Errore durante la richiesta Axios: ", error);
   });
 
+  function updateDataUser(newData: User){
+    dataUser.value = newData;
+  }
+
 </script>
 
 <template>
   <title>Prenotazioni</title>
-  <h1>Prenotazioni</h1>
-  <div style="display:block; text-align:center">
-    <button id="newBookingButton"> Esegui una nuova prenotazione </button>
-  </div>
+  <h1>Prenotazioni dell'utente {{dataUser.codice_fiscale}}</h1>
   <div v-if="dataBooking.length > 0">
     <section id="booking-info" v-for="booking in dataBooking" :key="booking.id">
       <h1>{{booking.venue.name}}</h1>
@@ -47,6 +50,10 @@ Le prenotazioni vengono salvate in DB uno a uno dal MainPage non appena si clicc
   <div v-else class="container">
     <img src="/ErrorImage.png" alt="Error image" class="image"/>
   </div>
+  <BackendInteract
+      ref="backendInteractRef"
+      @update:dataUser="updateDataUser"
+  />
 </template>
 
 <style scoped>
@@ -62,28 +69,6 @@ Le prenotazioni vengono salvate in DB uno a uno dal MainPage non appena si clicc
     max-width: 50%;
     max-height: 55%;
     object-fit: contain;
-  }
-
-  #newBookingButton{
-    background-color: var(--highlight-color);
-    border: solid transparent;
-    border-radius: 16px;
-    border-width: 0 0 4px;
-    color: #FFF;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: .8px;
-    display:inline-block;
-    margin: 0 auto;
-    padding: 13px 22px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: filter .2s;
-    filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
-  }
-
-  #newBookingButton:active {
-    border-width: 4px 0 0;
   }
 
   #booking-info {

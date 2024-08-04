@@ -1,19 +1,21 @@
 <script setup lang="ts">
   import axios from 'axios';
   import type {AxiosResponse} from 'axios';
-  import {watch, ref} from 'vue';
-  import {Venue, Booking, Personnel, EventInfo} from '@/types'
+  import {ref} from 'vue';
+  import {Venue, Booking, Personnel, EventInfo, User} from '@/types'
 
   const dataVenue = ref<Venue[]>([]);
   const dataBooking = ref<Booking[]>([]);
   const dataPersonnel = ref<Personnel[]>([]);
   const dataEventInfo = ref<EventInfo>(new EventInfo( 2, 'matrimonio', '2024-08-01', '11:00:00', '14:00:00', 100));
+  const dataUser = ref<User>(new User('ALLGR2002123456'));
 
   const emit = defineEmits<{
     (event: 'update:dataVenue', data: Venue[]): void;
     (event: 'update:dataBooking', data: Booking[]): void;
     (event: 'update:dataPersonnel', data: Personnel[]): void;
     (event: 'update:dataEventInfo', data: EventInfo): void;
+    (event: 'update:dataUser', data: User): void;
   }>();
 
   async function fetchEventInfo(){
@@ -26,6 +28,21 @@
         console.log("Unknown Object", response.data)
       }
       sendEventInfo();
+    }).catch(error => {
+      console.error("Errore durante la richiesta Axios:", error);
+    });
+  }
+
+  async function fetchUser(){
+    await axios.get<User>("/api/callREST/getUser").then((response: AxiosResponse<User>) => {
+      console.log("Risposta da Axios:", response);
+      console.log("Utente ricevuto:", response.data);
+      if('codice_fiscale' in response.data){
+        dataUser.value = response.data;
+      } else {
+        console.log("Unknown Object", response.data)
+      }
+      //sendUser();
     }).catch(error => {
       console.error("Errore durante la richiesta Axios:", error);
     });
@@ -74,6 +91,7 @@
   }
 
   defineExpose({
+    fetchUser,
     fetchEventInfo,
     fetchVenues,
     fetchPersonnel
@@ -95,15 +113,13 @@
     emit('update:dataEventInfo', dataEventInfo.value);
   }
 
+  function sendUser(){
+    emit('update:dataUser', dataUser.value)
+  }
+
 </script>
 
-<template>
-  <ul v-if="dataVenue.length > 0">
-  </ul>
-  <div v-else>
-    Errore BackendInteract: nessun elemento letto dalla richiesta HTTP <!-- TODO: propagare l'errore a MainPage così da mostrare un messaggio di errore standardizzato -->
-  </div>
-</template>
+<!-- TODO: fare messaggio di errore in caso di mancanza di luoghi dopo la lettura -->
 
 <style scoped>
   h1 {
