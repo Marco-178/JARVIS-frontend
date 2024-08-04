@@ -285,10 +285,6 @@ function bookEvent(){
     margin-right: 5px;
   }
 
-  input[type='text']:select {
-    
-  }
-
   #search-button {
     border: solid hsla(160, 100%, 37%, 1) 2px;
     border-radius: 5px;
