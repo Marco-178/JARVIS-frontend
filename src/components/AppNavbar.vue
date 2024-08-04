@@ -12,7 +12,7 @@
         <router-link to="/bookings" active-class="active-link">Nuova prenotazione</router-link>
       </li>
     </ul>
-    // TODO: night mode button
+    <!-- TODO: night mode button -->
   </nav>
 </template>
 

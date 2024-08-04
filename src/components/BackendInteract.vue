@@ -32,7 +32,7 @@
   }
 
   async function fetchVenues(){
-    await axios.get<Venue[]>("/api/venue/available?date=" + dataEventInfo.value.date + "&start=" + dataEventInfo.value.schedule_start + "&end=" + dataEventInfo.value.schedule_end).then((response: AxiosResponse<Venue[]>) => {
+    await axios.get<Venue[]>("/api/venue/available?date=" + dataEventInfo.value.date + "&start=" + dataEventInfo.value.schedule_start + "&end=" + dataEventInfo.value.schedule_end + "&capacity=" + dataEventInfo.value.max_participants).then((response: AxiosResponse<Venue[]>) => {
       console.log("Risposta da Axios: ", response);
       console.log("Luogo ricevuto: ", response.data);
       response.data.forEach(item => {
