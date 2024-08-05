@@ -37,12 +37,9 @@
     await axios.get<User>("/api/callREST/getUser").then((response: AxiosResponse<User>) => {
       console.log("Risposta da Axios:", response);
       console.log("Utente ricevuto:", response.data);
-      if('codice_fiscale' in response.data){
-        dataUser.value = response.data;
-      } else {
-        console.log("Unknown Object", response.data)
-      }
-      //sendUser();
+      const codice_fiscale = response.data.codice_fiscale;
+      dataUser.value = new User(codice_fiscale);
+      sendUser();
     }).catch(error => {
       console.error("Errore durante la richiesta Axios:", error);
     });
@@ -119,6 +116,10 @@
 
 </script>
 
+<template>
+  <div>
+  </div>
+</template>
 <!-- TODO: fare messaggio di errore in caso di mancanza di luoghi dopo la lettura -->
 
 <style scoped>

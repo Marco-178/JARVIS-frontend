@@ -3,16 +3,17 @@
 Usare query fatta su backend per visualizzare tutte le prenotazioni associate a un codice fiscale.
 Le prenotazioni vengono salvate in DB uno a uno dal MainPage non appena si clicca il tasto "prenota"
  */
-  import {ref} from 'vue'
+import {onMounted, ref} from 'vue'
   import axios, {type AxiosResponse} from "axios";
   import {Booking, User} from "@/types";
-import BackendInteract from "@/components/BackendInteract.vue";
+  import BackendInteract from "@/components/BackendInteract.vue";
   const dataBooking = ref<Booking[]>([]);
   const dataUser = ref<User>(new User('ALLGR2002123456'));
+  const backendInteractRef = ref<InstanceType<typeof BackendInteract> | null>(null);
 
   axios.get<Booking[]>("api/booking/ls").then((response: AxiosResponse<Booking[]>) => { // TODO rifare quando verranno implementati i servizi REST sul backend, forse da spostare in BackendInteract e fare caching per ridurre tempo di attesa
     console.log("Risposta da Axios: ", response);
-    console.log("Dati ricevuti: ", response.data);
+    console.log("Prenotazioni ricevute: ", response.data);
     response.data.forEach(item => {
       if ('id' in item) {
         const newBooking = new Booking(item.id, item.codice_fiscale, item.date, item.duration, item.venue, item.personnel);
@@ -28,6 +29,12 @@ import BackendInteract from "@/components/BackendInteract.vue";
   function updateDataUser(newData: User){
     dataUser.value = newData;
   }
+
+onMounted(async () => {
+  if (backendInteractRef.value) {
+    await backendInteractRef.value.fetchUser();
+  }
+});
 
 </script>
 

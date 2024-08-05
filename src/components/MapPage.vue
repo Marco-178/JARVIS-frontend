@@ -2,7 +2,7 @@
 import JSConfetti from 'js-confetti'
 import L from 'leaflet'
 import {ref, onMounted} from 'vue'
-import axios, {type AxiosResponse} from 'axios';
+import axios from 'axios';
 import BackendInteract from '@/components/BackendInteract.vue'
 import {Venue, Booking, Personnel, EventInfo, User} from '@/types';
 
@@ -118,7 +118,7 @@ async function initializeMarkers(){
         console.log(`Riprovo la richiesta per "${address}". Tentativo ${retries + 1}`);
         await fetchGeocode(address, retries + 1);
       } else {
-        console.error(`Richiesta per "${address}" fallita dopo ${maxRetries} tentativi`); // TODO: segnalare errore a autente
+        console.error(`Richiesta per "${address}" fallita dopo ${maxRetries} tentativi`); // TODO: segnalare errore a utente
         const ghostMarker = new markerAddress(0, 0, address); // evita che la barra di caricamento si blocchi
         markerArray.value.push(ghostMarker);
         updateGeocodingStatusBar();
