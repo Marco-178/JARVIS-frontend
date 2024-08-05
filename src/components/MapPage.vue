@@ -17,9 +17,10 @@ let indirizzo: string;
 
 const dataVenue = ref<Venue[]>([]);
 const dataBooking = ref<Booking[]>([]);
+const isDataBookingLoaded = ref<boolean>(false);
 const dataPersonnel = ref<Personnel[]>([]);
 const dataEventInfo = ref<EventInfo>(new EventInfo( 2, 'matrimonio', '2024-08-01', '11:00:00', '14:00:00', 100));
-const dataUser = ref<User>(new User('ALLGR2002123456'));
+const dataUser = ref<User>();
 const markerArray = ref<markerAddress[]>([]);
 const selectedVenue = ref<Venue>();
 const selectedPersonnel = ref<Personnel[]>([]);
@@ -48,6 +49,7 @@ function updateDataPersonnel(newData: Personnel[]) {
 
 function updateDataBooking(newData: Booking[]) {
   dataBooking.value = newData;
+  isDataBookingLoaded.value = true;
 }
 
 function updateDataEventInfo(newData: EventInfo) {
@@ -62,7 +64,6 @@ onMounted(async () => {
   if (backendInteractRef.value) {
     await backendInteractRef.value.fetchEventInfo();
     await backendInteractRef.value.fetchVenues();
-    //getPersonnel("tecnologia", "2025-02-04", "15:18:33", "16:26:24");
     await backendInteractRef.value.fetchPersonnel(dataEventInfo.value.event_type, dataEventInfo.value.date, dataEventInfo.value.schedule_start, dataEventInfo.value.schedule_end);
     initializeMap();
     await backendInteractRef.value.fetchUser();
@@ -218,7 +219,7 @@ function bookEvent(){
 <template>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nuova Prenotazione</title>
-  <article class="disposition">
+  <article class="disposition first-content">
     <section class="item-disposition">
       <div style="order: 2"></div>
       <input v-model="indirizzo" type="text" name="ricerca" placeholder="Indirizzo da cercare">
@@ -283,8 +284,10 @@ function bookEvent(){
   }
 
   .booking-box{
-    background-color: lightgrey;
+    border: solid 3px var(--highlight-color);
+    background-color: var(--color-background-mute);
     padding: 20px;
+    color: var(--color-text);
   }
 
   .disposition{

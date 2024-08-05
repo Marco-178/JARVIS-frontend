@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import axios from 'axios';
   import type {AxiosResponse} from 'axios';
-  import {ref} from 'vue';
+  import {onMounted, ref} from 'vue';
   import {Venue, Booking, Personnel, EventInfo, User} from '@/types'
 
   const dataVenue = ref<Venue[]>([]);
@@ -17,6 +17,16 @@
     (event: 'update:dataEventInfo', data: EventInfo): void;
     (event: 'update:dataUser', data: User): void;
   }>();
+
+  onMounted(async () => {
+    await fetchUser();
+    await fetchBookings();
+    await fetchEventInfo();
+    await fetchVenues();
+    //getPersonnel("tecnologia", "2025-02-04", "15:18:33", "16:26:24");
+    await fetchPersonnel(dataEventInfo.value.event_type, dataEventInfo.value.date, dataEventInfo.value.schedule_start, dataEventInfo.value.schedule_end);
+    await fetchUser();
+  });
 
   async function fetchEventInfo(){
     await axios.get<EventInfo>("/api/callREST/getEvent").then((response: AxiosResponse<EventInfo>) => {

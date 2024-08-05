@@ -17,7 +17,7 @@
 </template>
 
 <style scoped>
-nav ul { /* TODO: quando si fa click su un link deve rimanere "cliccato" il box (cioè rimane evidenziato e il testo sottolineato ad esempio) */
+nav ul {
   list-style: none;
   padding:0;
   margin:0;
