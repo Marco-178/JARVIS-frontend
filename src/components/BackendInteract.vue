@@ -18,16 +18,6 @@
     (event: 'update:dataUser', data: User): void;
   }>();
 
-  onMounted(async () => {
-    await fetchUser();
-    await fetchBookings();
-    await fetchEventInfo();
-    await fetchVenues();
-    //getPersonnel("tecnologia", "2025-02-04", "15:18:33", "16:26:24");
-    await fetchPersonnel(dataEventInfo.value.event_type, dataEventInfo.value.date, dataEventInfo.value.schedule_start, dataEventInfo.value.schedule_end);
-    await fetchUser();
-  });
-
   async function fetchEventInfo(){
     await axios.get<EventInfo>("/api/callREST/getEvent").then((response: AxiosResponse<EventInfo>) => {
       console.log("Risposta da Axios:", response);
@@ -94,7 +84,6 @@
 
   async function fetchPersonnel(event_type:string, date:string, schedule_start:string, schedule_end:string){
     let url = "/api/personnel/available?sectors=" + event_type + "&date=" + date + "&start=" + schedule_start + "&end=" + schedule_end;
-    console.log(url);
     try{
       const response: AxiosResponse<Personnel[]> = await axios.get<Personnel[]>(url);
       console.log("Risposta da Axios: ", response);

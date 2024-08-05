@@ -190,7 +190,7 @@ function updateGeocodingStatusBar(){
 }
 
 function bookEvent(){
-  // TODO: controllo per posti già prenotati nella prenotazione precedente? FARE COMPONENTE A PARTE PER EVITARE RERENDERING
+  // TODO: controllo per posti già prenotati nella prenotazione precedente
   confetti.addConfetti({
     confettiRadius: 7,
     confettiNumber: 700,
@@ -213,7 +213,6 @@ function bookEvent(){
     console.error("selectedVenue non definito!")
   }
 }
-
 </script>
 
 <template>

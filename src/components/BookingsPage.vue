@@ -22,7 +22,6 @@
       await backendInteractRef.value.fetchBookings();
     }
   });
-
 </script>
 
 <template>
@@ -40,6 +39,12 @@
         <div v-for="personnel in booking.personnel" :key="personnel.name">
           {{personnel.name}} - {{personnel.hourly_cost}}€ all'ora
         </div>
+        <div style="text-align:right">
+          <button id="deleteBookingButton">
+            Elimina
+            <img src="/red-trash.png">
+          </button>
+        </div>
       </section>
     </div>
     <div v-else class="container">
@@ -47,8 +52,8 @@
     </div>
   </div>
   <div v-else class="loader-container">
-    <div class="loader">
-    </div>
+    <div class="dotsLoader"/>
+    <div class="loader"/>
   </div>
   <BackendInteract
       ref="backendInteractRef"
@@ -58,7 +63,6 @@
 </template>
 
 <style scoped>
-
   .container{
     display:flex;
     justify-content: center;
@@ -71,37 +75,6 @@
     max-width: 50%;
     max-height: 55%;
     object-fit: contain;
-  }
-
-  .loader-container {
-    border: solid var(--highlight-color) 3px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 70vh;
-    width: 90%;
-    text-align: center;
-  }
-
-  .loader {
-    width: fit-content;
-    font-weight: 700;
-    font-family: monospace;
-    font-size: 30px;
-    color :#0000;
-    overflow: hidden;
-    margin: 0 auto;
-    animation: l9 5s infinite cubic-bezier(0.3,1,0,1);
-  }
-  .loader:before {
-    content:"Loading..."
-  }
-  @keyframes l9 {
-    0%  {text-shadow: 0    0 #11EDFFFF, 11ch 0 #fa1c1c, 22ch 0 #FA1C1CFF, 33ch 0 var(--highlight-color),44ch 0 var(--navbar-text-color)}
-    25% {text-shadow:-11ch 0 #11EDFFFF,  0ch 0 #ec9d09, 11ch 0 #FA1C1CFF, 22ch 0 var(--highlight-color),33ch 0 var(--navbar-text-color)}
-    50% {text-shadow:-22ch 0 #11EDFFFF,-11ch 0 #ec9d09,  0ch 0 #FA1C1CFF, 11ch 0 var(--highlight-color),22ch 0 var(--navbar-text-color)}
-    75% {text-shadow:-33ch 0 #11EDFFFF,-22ch 0 #ec9d09,-11ch 0 #FA1C1CFF,  0ch 0 var(--highlight-color),11ch 0 var(--navbar-text-color)}
-    100%{text-shadow:-44ch 0 #11EDFFFF,-33ch 0 #ec9d09,-22ch 0 #FA1C1CFF,-11ch 0 var(--highlight-color), 0ch 0 var(--navbar-text-color)}
   }
 
   #booking-info {
@@ -125,4 +98,53 @@
     margin-top: 5px;
   }
 
+  #deleteBookingButton{
+    font-weight: 700;
+  }
+
+  .loader-container {
+    border: solid var(--highlight-color) 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 70vh;
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .loader {
+    width: fit-content;
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 30px;
+    color :#0000;
+    overflow: hidden;
+    animation: l9 5s infinite cubic-bezier(0.3,1,0,1);
+  }
+  .loader:before {
+    content:"Loading...";
+  }
+  @keyframes l9 {
+    0%  {text-shadow: 0    0 #FFF, 11ch 0 #fa1c1c, 22ch 0 #11EDFFFF, 33ch 0 var(--highlight-color),44ch 0 var(--navbar-text-color)}
+    25% {text-shadow:-11ch 0 #FFF,  0ch 0 #ec9d09, 11ch 0 #11EDFFFF, 22ch 0 var(--highlight-color),33ch 0 var(--navbar-text-color)}
+    50% {text-shadow:-22ch 0 #FFF,-11ch 0 #ec9d09,  0ch 0 #11EDFFFF, 11ch 0 var(--highlight-color),22ch 0 var(--navbar-text-color)}
+    75% {text-shadow:-33ch 0 #FFF,-22ch 0 #ec9d09,-11ch 0 #11EDFFFF,  0ch 0 var(--highlight-color),11ch 0 var(--navbar-text-color)}
+    100%{text-shadow:-44ch 0 #FFF,-33ch 0 #ec9d09,-22ch 0 #11EDFFFF,-11ch 0 var(--highlight-color), 0ch 0 var(--navbar-text-color)}
+  }
+
+  .dotsLoader {
+    color: var(--highlight-color);
+    margin: 0 55px 0;
+    width: 4px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    box-shadow: 19px 0 0 7px, 38px 0 0 3px, 57px 0 0 0;
+    transform: translateX(-38px);
+    animation: l21 .5s infinite alternate linear;
+  }
+  @keyframes l21 {
+    50%  {box-shadow: 19px 0 0 3px, 38px 0 0 7px, 57px 0 0 3px}
+    100% {box-shadow: 19px 0 0 0  , 38px 0 0 3px, 57px 0 0 7px}
+  }
 </style>
