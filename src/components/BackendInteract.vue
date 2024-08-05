@@ -45,10 +45,28 @@
     });
   }
 
+  async function fetchBookings(){
+    await axios.get<Booking[]>("api/booking/ls").then((response: AxiosResponse<Booking[]>) => { // un po' lento
+      console.log("Risposta da Axios: ", response);
+      console.log("Prenotazioni ricevute: ", response.data);
+      response.data.forEach(item => {
+        if ('id' in item) {
+          const newBooking = new Booking(item.id, item.codice_fiscale, item.date, item.duration, item.venue, item.personnel);
+          dataBooking.value.push(newBooking);
+        } else {
+          console.log("Unknown Object", response.data);
+        }
+      });
+      sendBookings();
+    }).catch(error => {
+      console.error("Errore durante la richiesta Axios: ", error);
+    });
+  }
+
   async function fetchVenues(){
     await axios.get<Venue[]>("/api/venue/available?date=" + dataEventInfo.value.date + "&start=" + dataEventInfo.value.schedule_start + "&end=" + dataEventInfo.value.schedule_end + "&capacity=" + dataEventInfo.value.max_participants).then((response: AxiosResponse<Venue[]>) => {
       console.log("Risposta da Axios: ", response);
-      console.log("Luogo ricevuto: ", response.data);
+      console.log("Luoghi ricevuti: ", response.data);
       response.data.forEach(item => {
         if ('address' in item) {
           const newVenue = new Venue(item.id, item.name, item.address, item.max_capacity, item.rent_cost, item.weekdayHours, item.weekendHours, item.closingDays, item.booking);
@@ -88,8 +106,9 @@
   }
 
   defineExpose({
-    fetchUser,
     fetchEventInfo,
+    fetchUser,
+    fetchBookings,
     fetchVenues,
     fetchPersonnel
   })

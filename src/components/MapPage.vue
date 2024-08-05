@@ -66,7 +66,7 @@ onMounted(async () => {
     await backendInteractRef.value.fetchPersonnel(dataEventInfo.value.event_type, dataEventInfo.value.date, dataEventInfo.value.schedule_start, dataEventInfo.value.schedule_end);
     initializeMap();
     await backendInteractRef.value.fetchUser();
-    loadBookings();
+    await backendInteractRef.value.fetchBookings();
   }
 });
 
@@ -188,14 +188,6 @@ function updateGeocodingStatusBar(){
   }
 }
 
-function loadBookings(){
-  const savedBookings = localStorage.getItem('dataBooking');
-  if (savedBookings) {
-    console.log('Caricamento localStorage per prenotazioni');
-    dataBooking.value = JSON.parse(savedBookings);
-  }
-}
-
 function bookEvent(){
   // TODO: controllo per posti già prenotati nella prenotazione precedente? FARE COMPONENTE A PARTE PER EVITARE RERENDERING
   confetti.addConfetti({
@@ -213,7 +205,6 @@ function bookEvent(){
     )
     dataBooking.value.push(newBooking);
     console.log(dataBooking)
-    localStorage.setItem('dataBooking', JSON.stringify(dataBooking.value));
     // TODO aggiunta prenotazione DB + segnalazione errore eventuale
     alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
   }

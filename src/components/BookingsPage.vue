@@ -1,9 +1,5 @@
 <script setup lang="ts">
-/*
-Usare query fatta su backend per visualizzare tutte le prenotazioni associate a un codice fiscale.
-Le prenotazioni vengono salvate in DB uno a uno dal MainPage non appena si clicca il tasto "prenota"
- */
-import {onMounted, ref} from 'vue'
+  import {onMounted, ref} from 'vue'
   import axios, {type AxiosResponse} from "axios";
   import {Booking, User} from "@/types";
   import BackendInteract from "@/components/BackendInteract.vue";
@@ -30,11 +26,16 @@ import {onMounted, ref} from 'vue'
     dataUser.value = newData;
   }
 
-onMounted(async () => {
-  if (backendInteractRef.value) {
-    await backendInteractRef.value.fetchUser();
+  function updateDataBooking(newData: Booking[]){
+    dataBooking.value = newData;
   }
-});
+
+  onMounted(async () => {
+    if (backendInteractRef.value) {
+      await backendInteractRef.value.fetchUser();
+      await backendInteractRef.value.fetchBookings();
+    }
+  });
 
 </script>
 
@@ -60,6 +61,7 @@ onMounted(async () => {
   <BackendInteract
       ref="backendInteractRef"
       @update:dataUser="updateDataUser"
+      @update:dataBooking="updateDataBooking"
   />
 </template>
 
