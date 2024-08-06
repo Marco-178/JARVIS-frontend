@@ -46,7 +46,7 @@
   }
 
   async function fetchBookings(){
-    await axios.get<Booking[]>("api/booking/ls").then((response: AxiosResponse<Booking[]>) => { // un po' lento
+    await axios.get<Booking[]>("api/booking/ls?cf=" + dataUser.value.codice_fiscale).then((response: AxiosResponse<Booking[]>) => { // un po' lento
       console.log("Risposta da Axios: ", response);
       console.log("Prenotazioni ricevute: ", response.data);
       response.data.forEach(item => {

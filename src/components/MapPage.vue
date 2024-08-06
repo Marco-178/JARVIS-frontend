@@ -20,7 +20,7 @@ const dataBooking = ref<Booking[]>([]);
 const isDataBookingLoaded = ref<boolean>(false);
 const dataPersonnel = ref<Personnel[]>([]);
 const dataEventInfo = ref<EventInfo>(new EventInfo( 2, 'matrimonio', '2024-08-01', '11:00:00', '14:00:00', 100));
-const dataUser = ref<User>();
+const dataUser = ref<User>(new User("ALLGR2002123456"));
 const markerArray = ref<markerAddress[]>([]);
 const selectedVenue = ref<Venue>();
 const selectedPersonnel = ref<Personnel[]>([]);
@@ -208,6 +208,32 @@ function bookEvent(){
     console.log(dataBooking)
     // TODO aggiunta prenotazione DB + segnalazione errore eventuale
     alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
+    console.log("aaaaa " + dataUser.value.codice_fiscale);
+    const personnelName = [];
+    for(let i=0; i < selectedPersonnel.value.length; i++){
+      personnelName.push(selectedPersonnel.value[i].name);
+    }
+    const booking = {
+      date: dataEventInfo.value.date,
+      duration: "00:34:00", // da cambiare
+      ssn: dataUser.value.codice_fiscale,
+      venueId: selectedVenue.value.id,
+      personnelName: personnelName
+    };
+    console.log(booking);
+
+    axios.post('/api/booking/add', booking, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(response => {
+        console.log('Booking ID:', response.data);
+      })
+      .catch(error => {
+        console.error('Errore:', error.response ? error.response.data : error.message);
+      });
+    //const response = axios.post('/api/booking/add', JSON.stringify(booking));
   }
   else{
     console.error("selectedVenue non definito!")
