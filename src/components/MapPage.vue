@@ -3,11 +3,17 @@ import JSConfetti from 'js-confetti'
 import L from 'leaflet'
 import {ref, onMounted} from 'vue'
 import axios from 'axios';
-import BackendInteract from '@/components/BackendInteract.vue'
-import {Venue, Booking, Personnel, EventInfo, User} from '@/types';
+import {Venue, Booking, Personnel} from '@/types';
 
-import 'leaflet/dist/leaflet.js'
-import 'leaflet/dist/leaflet.css'
+import 'leaflet/dist/leaflet.js';
+import 'leaflet/dist/leaflet.css';
+
+import {storeToRefs} from "pinia";
+import {useVenuesStore} from '@/stores/venuesStore';
+import {useBookingStore} from '@/stores/bookingsStore';
+import {usePersonnelStore} from '@/stores/personnelStore';
+import {useEventStore} from '@/stores/eventStore';
+import {useUserStore} from '@/stores/userStore';
 
 const confetti = new JSConfetti();
 const mapContainer = ref<HTMLElement>();
@@ -15,17 +21,25 @@ const mapContainer = ref<HTMLElement>();
 let map: L.Map;
 let indirizzo: string;
 
-const dataVenue = ref<Venue[]>([]);
-const dataBooking = ref<Booking[]>([]);
-const isDataBookingLoaded = ref<boolean>(false);
-const dataPersonnel = ref<Personnel[]>([]);
-const dataEventInfo = ref<EventInfo>(new EventInfo( 2, 'matrimonio', '2024-08-01', '11:00:00', '14:00:00', 100));
-const dataUser = ref<User>(new User("ALLGR2002123456"));
+const venuesStore = useVenuesStore();
+const bookingStore = useBookingStore();
+const personnelStore = usePersonnelStore();
+const eventStore = useEventStore();
+const userStore = useUserStore();
+
+const {dataVenue} = storeToRefs(venuesStore);
+const {isDataVenueLoaded} = storeToRefs(venuesStore);
+const {dataBooking} = storeToRefs(bookingStore);
+const {isDataBookingLoaded} = storeToRefs(bookingStore);
+const {dataPersonnel} = storeToRefs(personnelStore);
+const {isDataPersonnelLoaded} = storeToRefs(personnelStore);
+const {dataEventInfo} = storeToRefs(eventStore);
+const {dataUser} = storeToRefs(userStore);
+
 const markerArray = ref<markerAddress[]>([]);
 const selectedVenue = ref<Venue>();
 const selectedPersonnel = ref<Personnel[]>([]);
 const loadedMarkers = ref<number>(0);
-const backendInteractRef = ref<InstanceType<typeof BackendInteract> | null>(null);
 
 class markerAddress{
   latlon: {
@@ -39,37 +53,35 @@ class markerAddress{
   }
 }
 
-function updateDataVenue(newData: Venue[]) {
-  dataVenue.value = newData;
-}
-
-function updateDataPersonnel(newData: Personnel[]) {
-  dataPersonnel.value = newData;
-}
-
-function updateDataBooking(newData: Booking[]) {
-  dataBooking.value = newData;
-  isDataBookingLoaded.value = true;
-}
-
-function updateDataEventInfo(newData: EventInfo) {
-  dataEventInfo.value = newData;
-}
-
-function updateDataUser(newData: User){
-  dataUser.value = newData;
-}
-
 onMounted(async () => {
-  if (backendInteractRef.value) {
-    await backendInteractRef.value.fetchEventInfo();
-    await backendInteractRef.value.fetchVenues();
-    await backendInteractRef.value.fetchPersonnel(dataEventInfo.value.event_type, dataEventInfo.value.date, dataEventInfo.value.schedule_start, dataEventInfo.value.schedule_end);
-    initializeMap();
-    await backendInteractRef.value.fetchUser();
-    await backendInteractRef.value.fetchBookings();
-  }
+  await waitForDataReady();
+  initializeMap();
 });
+
+async function waitForDataReady(maxAttempts = 50, checkInterval = 500) {
+  let attempts = 0;
+  while (attempts < maxAttempts) {
+    if (checkIfDataIsReady()) {
+      console.log("Tutti i dati sono pronti!");
+      return true;
+    }
+    else console.log("Dati non pronti");
+    attempts++;
+    await new Promise(resolve => setTimeout(resolve, checkInterval));
+  }
+  console.error("I dati non sono pronti dopo", maxAttempts, " tentativi e tempo di attesa di ", (checkInterval*maxAttempts)/1000 ," secondi");
+  return false;
+}
+
+function checkIfDataIsReady() {
+  // per gli array si usa un boolean che è true solo quando tutti i dati sono confermati letti dalla risposta axios (così è possibile ricevere anche array vuoti)
+  if(isDataVenueLoaded.value
+      && isDataBookingLoaded.value
+      && isDataPersonnelLoaded.value
+      && dataEventInfo.value
+      && dataUser.value)
+    return true;
+}
 
 function initializeMap(){
   if(mapContainer.value){
@@ -196,44 +208,48 @@ function bookEvent(){
     confettiNumber: 700,
   })
   if(selectedVenue.value != undefined){
-    const newBooking = new Booking(
-        -1, // placeholder, in lettura il vero id viene recuperato dal DB e in scrittura sul backend mandiamo un oggetto senza id
-        "NNNMRC02M01D548F",
-        dataEventInfo.value.date,
-        {start: dataEventInfo.value.schedule_start, end: dataEventInfo.value.schedule_end},
-        selectedVenue.value,
-        selectedPersonnel.value,
-    )
-    dataBooking.value.push(newBooking);
-    console.log(dataBooking)
-    // TODO aggiunta prenotazione DB + segnalazione errore eventuale
-    alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
-    console.log("aaaaa " + dataUser.value.codice_fiscale);
-    const personnelName = [];
-    for(let i=0; i < selectedPersonnel.value.length; i++){
-      personnelName.push(selectedPersonnel.value[i].name);
-    }
-    const booking = {
-      date: dataEventInfo.value.date,
-      duration: "00:34:00", // da cambiare
-      ssn: dataUser.value.codice_fiscale,
-      venueId: selectedVenue.value.id,
-      personnelName: personnelName
-    };
-    console.log(booking);
-
-    axios.post('/api/booking/add', booking, {
-      headers: {
-        'Content-Type': 'application/json'
+    if(dataUser.value != null) {
+      const newBooking = new Booking(
+          -1, // placeholder, in lettura il vero id viene recuperato dal DB e in scrittura sul backend mandiamo un oggetto senza id
+          "NNNMRC02M01D548F",
+          dataEventInfo.value.date,
+          {start: dataEventInfo.value.schedule_start, end: dataEventInfo.value.schedule_end},
+          selectedVenue.value,
+          selectedPersonnel.value,
+      )
+      dataBooking.value.push(newBooking);
+      console.log(dataBooking)
+      // TODO aggiunta prenotazione DB + segnalazione errore eventuale
+      alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
+      const personnelName = [];
+      for (let i = 0; i < selectedPersonnel.value.length; i++) {
+        personnelName.push(selectedPersonnel.value[i].name);
       }
-    })
-      .then(response => {
-        console.log('Booking ID:', response.data);
+      const booking = {
+        date: dataEventInfo.value.date,
+        duration: "00:34:00", // da cambiare
+        ssn: dataUser.value.codice_fiscale,
+        venueId: selectedVenue.value.id,
+        personnelName: personnelName
+      };
+      console.log(booking);
+
+      axios.post('/api/booking/add', booking, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
       })
-      .catch(error => {
-        console.error('Errore:', error.response ? error.response.data : error.message);
-      });
-    //const response = axios.post('/api/booking/add', JSON.stringify(booking));
+          .then(response => {
+            console.log('Booking ID:', response.data);
+          })
+          .catch(error => {
+            console.error('Errore:', error.response ? error.response.data : error.message);
+          });
+      //const response = axios.post('/api/booking/add', JSON.stringify(booking));
+    }
+    else{
+      console.error("Utente non definito!")
+    }
   }
   else{
     console.error("selectedVenue non definito!")
@@ -242,7 +258,6 @@ function bookEvent(){
 </script>
 
 <template>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nuova Prenotazione</title>
   <article class="disposition first-content">
     <section class="item-disposition">
@@ -279,15 +294,6 @@ function bookEvent(){
       <button @click="bookEvent">Prenota</button>
     </section>
   </article>
-  <br><br>
-  <BackendInteract
-      ref="backendInteractRef"
-      @update:dataVenue="updateDataVenue"
-      @update:dataPersonnel="updateDataPersonnel"
-      @update:dataBooking="updateDataBooking"
-      @update:dataEventInfo="updateDataEventInfo"
-      @update:dataUser="updateDataUser"
-  />
 </template>
 
 <style scoped>
@@ -327,12 +333,7 @@ function bookEvent(){
     border: solid var(--highlight-color) 2px;
     border-radius: 5px;
     padding: 5px;
-    margin: 5px 0;
-    margin-right: 5px;
-  }
-
-  input[type='text']:select {
-
+    margin: 5px 5px 5px 0;
   }
 
   #search-button {
@@ -340,8 +341,7 @@ function bookEvent(){
     border-radius: 5px;
     background-color: var(--highlight-color);
     padding: 5px;
-    margin: 5px 0;
-    margin-right: 5px;
+    margin: 5px 5px 5px 0;
     transition: 0.5s;
   }
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Navbar from "@/components/AppNavbar.vue";
+import BackendInteract from "@/components/BackendInteract.vue"
 </script>
 
 
@@ -11,6 +12,7 @@ import Navbar from "@/components/AppNavbar.vue";
   </header>
 
   <main>
+    <BackendInteract/>
     <router-view v-slot="{ Component }">
       <keep-alive>
         <component :is="Component" />
