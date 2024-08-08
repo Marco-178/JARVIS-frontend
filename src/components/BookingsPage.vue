@@ -14,7 +14,7 @@
 <template>
   <title>Prenotazioni</title>
   <h1 v-if="dataUser" class="first-content" style="text-align: center;">Prenotazioni dell'utente: {{dataUser.codice_fiscale}}</h1>
-  <div v-if="isDataBookingLoaded && dataUser">
+  <div v-if="isDataBookingLoaded">
     <div v-if="dataBooking.length > 0">
       <section id="booking-info" v-for="booking in dataBooking" :key="booking.id">
         <h1>{{booking.venue.name}}</h1>

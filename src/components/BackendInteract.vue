@@ -110,7 +110,6 @@
       response.data.forEach(item => {
         if ('sector' in item) {
           const newPersonnel = new Personnel(item.name, item.hourly_cost, item.weekdayHours, item.weekendHours, item.sector);
-          console.log(newPersonnel);
           dataPersonnel.value.push(newPersonnel);
           console.log("Personnel", dataPersonnel.value);
         } else {

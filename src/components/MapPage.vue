@@ -65,7 +65,6 @@ async function waitForDataReady(maxAttempts = 50, checkInterval = 500) {
       console.log("Tutti i dati sono pronti!");
       return true;
     }
-    else console.log("Dati non pronti");
     attempts++;
     await new Promise(resolve => setTimeout(resolve, checkInterval));
   }
@@ -202,7 +201,6 @@ function updateGeocodingStatusBar(){
 }
 
 function bookEvent(){
-  // TODO: controllo per posti già prenotati nella prenotazione precedente
   confetti.addConfetti({
     confettiRadius: 7,
     confettiNumber: 700,
@@ -218,21 +216,22 @@ function bookEvent(){
           selectedPersonnel.value,
       )
       dataBooking.value.push(newBooking);
-      console.log(dataBooking)
+      console.log(dataBooking);
       // TODO aggiunta prenotazione DB + segnalazione errore eventuale
-      alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
       const personnelName = [];
       for (let i = 0; i < selectedPersonnel.value.length; i++) {
         personnelName.push(selectedPersonnel.value[i].name);
       }
       const booking = {
         date: dataEventInfo.value.date,
-        duration: "00:34:00", // da cambiare
+        duration: {
+          start: dataEventInfo.value.schedule_start,
+          end: dataEventInfo.value.schedule_end,
+        },
         ssn: dataUser.value.codice_fiscale,
-        venueId: selectedVenue.value.id,
-        personnelName: personnelName
+        venue_id: selectedVenue.value.id,
+        personnel_name: personnelName
       };
-      console.log(booking);
 
       axios.post('/api/booking/add', booking, {
         headers: {
@@ -241,18 +240,21 @@ function bookEvent(){
       })
           .then(response => {
             console.log('Booking ID:', response.data);
+            alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
+            // TODO: ripetere lettura venues da backend e bookings per aggiornare i posti disponibili
           })
           .catch(error => {
+            alert('ERRORE PRENOTAZIONE\n');
             console.error('Errore:', error.response ? error.response.data : error.message);
           });
       //const response = axios.post('/api/booking/add', JSON.stringify(booking));
     }
     else{
-      console.error("Utente non definito!")
+      console.error("Utente non definito!");
     }
   }
   else{
-    console.error("selectedVenue non definito!")
+    console.error("selectedVenue non definito!");
   }
 }
 </script>

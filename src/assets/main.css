@@ -22,3 +22,33 @@ a,
 .first-content{
   margin:40px 0 30px;
 }
+
+[data-theme="light"] {
+  --color-background: var(--vt-c-white);
+  --color-background-soft: var(--vt-c-white-soft);
+  --color-background-mute: var(--vt-c-white-mute);
+
+  --color-border: var(--vt-c-divider-light-2);
+  --color-border-hover: var(--vt-c-divider-light-1);
+
+  --color-heading: var(--vt-c-text-light-1);
+  --color-text: var(--vt-c-text-light-1);
+
+  --navbar-bg: 	hsl(0, 0%, 95%);
+  --navbar-text-color: hsl(0, 0%, 20%);
+}
+
+[data-theme="dark"] {
+  --color-background: var(--vt-c-black);
+  --color-background-soft: var(--vt-c-black-soft);
+  --color-background-mute: var(--vt-c-black-mute);
+
+  --color-border: var(--vt-c-divider-dark-2);
+  --color-border-hover: var(--vt-c-divider-dark-1);
+
+  --color-heading: var(--vt-c-text-dark-1);
+  --color-text: var(--vt-c-text-dark-2);
+
+  --navbar-bg: hsla(0, 0%, 95%, 0.27);
+  --navbar-text-color: hsl(0, 0%, 100%);
+}
