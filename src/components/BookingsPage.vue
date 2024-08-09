@@ -2,6 +2,8 @@
   import {useBookingStore} from '@/stores/bookingsStore';
   import {useUserStore} from '@/stores/userStore';
   import {storeToRefs} from 'pinia';
+  import axios, { type AxiosResponse } from 'axios'
+  import {Booking} from '@/types'
 
   const bookingStore = useBookingStore();
   const userStore = useUserStore();
@@ -9,6 +11,20 @@
   const {dataBooking} = storeToRefs(bookingStore);
   const {isDataBookingLoaded} = storeToRefs(bookingStore);
   const {dataUser} = storeToRefs(userStore);
+
+  async function deleteBooking(id: number){
+    await axios.get<Booking>("/api/booking/del?id=" + id).then((response: AxiosResponse<Booking>) => {
+      console.log("Risposta da Axios: ", response);
+      console.log("Prenotazione cancellata con successo");
+    }).catch(error => {
+      alert('Errore durante la cancellazione della prenotazione: ' + error.message);
+    });
+    for(let i = 0; i < dataBooking.value.length; i++){
+      if(dataBooking.value[i].id == id){
+        dataBooking.value.splice(i);
+      }
+    }
+  }
 </script>
 
 <template>
@@ -27,7 +43,7 @@
           {{personnel.name}} - {{personnel.hourly_cost}}€ all'ora
         </div>
         <div style="text-align:right">
-          <button id="deleteBookingButton">
+          <button @click="deleteBooking(booking.id)" id="deleteBookingButton">
             Elimina
             <img src="/red-trash.png" alt="image of a trash bin">
           </button>

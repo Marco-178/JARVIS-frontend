@@ -209,7 +209,7 @@ function bookEvent(){
     if(dataUser.value != null) {
       const newBooking = new Booking(
           -1, // placeholder, in lettura il vero id viene recuperato dal DB e in scrittura sul backend mandiamo un oggetto senza id
-          "NNNMRC02M01D548F",
+          dataUser.value.codice_fiscale,
           dataEventInfo.value.date,
           {start: dataEventInfo.value.schedule_start, end: dataEventInfo.value.schedule_end},
           selectedVenue.value,
@@ -263,7 +263,7 @@ function bookEvent(){
   <title>Nuova Prenotazione</title>
   <article class="disposition first-content">
     <section class="item-disposition">
-      <div style="order: 2"></div>
+      <div style="order: 1"></div>
       <input v-model="indirizzo" type="text" name="ricerca" placeholder="Indirizzo da cercare">
       <button id="search-button" @click="findAddress(indirizzo)"><img src="/search.png" alt="cerca" height="20"/></button><br>
       <div ref="mapContainer" id="map"/>
@@ -273,27 +273,35 @@ function bookEvent(){
         </div>
       </div> 
     </section>
-    <section class="item-disposition booking-box" v-if="selectedVenue">
-      <div style="order: 3"></div>
-      <h1 v-if="selectedVenue">{{ selectedVenue.name }}</h1>
-      <h2 v-if="selectedVenue">Indirizzo: {{ selectedVenue.address}} </h2>
-      <h2 v-if="selectedVenue">Costo orario: {{ selectedVenue.rent_cost}} </h2>
-      <div v-if="dataPersonnel.length != 0">
-        <label> Selezionare il personale per l'evento :</label>
-        <br>
-        <form @submit.prevent="bookEvent">
-          <div v-for="(option, index) in dataPersonnel" :key="index">
-            <input type="checkbox" v-model="selectedPersonnel" :value="option"/>
-            <!--button type="button" data-toggle="collapse" :data-target="#'personnel'+index">{{option.name}}</button>
-              <div :id="'personnel'+ index" class="collapse">{{ option.hourly_cost }}</div-->
-            <span>{{ option.name }}, {{ option.hourly_cost }}</span>
-          </div>
-        </form>
-      </div>
-      <div v-else>
-        <p> Nessun personale disponibile per il giorno e ora scelti </p>
-      </div>
-      <button @click="bookEvent">Prenota</button>
+    <section>
+      <section class="item-disposition booking-box">
+        <div style="order: 2"></div>
+          <h1>Informazioni sull'evento</h1>
+          <h2>Data: {{dataEventInfo.date}}</h2>
+          <h2>Tipo di evento: {{dataEventInfo.event_type}}</h2>
+          <h2>Orario di inizio: {{dataEventInfo.schedule_start}}</h2>
+          <h2>Orario di fine: {{dataEventInfo.schedule_end}}</h2>
+      </section>
+      <section class="item-disposition booking-box" v-if="selectedVenue">
+        <div style="order: 2"></div>
+        <h1 v-if="selectedVenue">{{ selectedVenue.name }}</h1>
+        <h2 v-if="selectedVenue">Indirizzo: {{ selectedVenue.address}} </h2>
+        <h2 v-if="selectedVenue">Costo orario: {{ selectedVenue.rent_cost}} </h2>
+        <div v-if="dataPersonnel.length != 0">
+          <label> Selezionare il personale per l'evento :</label>
+          <br>
+          <form @submit.prevent="bookEvent">
+            <div v-for="(option, index) in dataPersonnel" :key="index">
+              <input type="checkbox" v-model="selectedPersonnel" :value="option"/>
+              <span>{{ option.name }}, {{ option.hourly_cost }}</span>
+            </div>
+          </form>
+        </div>
+        <div v-else>
+          <p> Nessun personale disponibile per il giorno e ora scelti </p>
+        </div>
+        <button @click="bookEvent">Prenota</button>
+      </section>
     </section>
   </article>
 </template>
