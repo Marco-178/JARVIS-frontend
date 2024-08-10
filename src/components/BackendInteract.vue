@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import axios from 'axios';
   import type {AxiosResponse} from 'axios';
-  import {onMounted} from 'vue';
+  import {onMounted, watch} from 'vue';
   import {Venue, Booking, Personnel, EventInfo, User} from '@/types'
   import {storeToRefs} from "pinia";
   import {useVenuesStore} from '@/stores/venuesStore';
@@ -82,6 +82,20 @@
     }
   }
 
+  watch(() => bookingStore.updateBookingsTrigger,
+      async () => {
+        if(bookingStore.updateBookingsTrigger) {
+          try {
+            venuesStore.setVenues([]);
+            await fetchVenues();
+            bookingStore.notifyBookingsUpdated();
+          } catch (error) {
+            console.error("Errore durante l'aggiornamento:", error);
+          }
+        }
+      }
+  );
+
   async function fetchVenues(){
     await axios.get<Venue[]>("/api/venue/available?date=" + dataEventInfo.value.date + "&start=" + dataEventInfo.value.schedule_start + "&end=" + dataEventInfo.value.schedule_end + "&capacity=" + dataEventInfo.value.max_participants).then((response: AxiosResponse<Venue[]>) => {
       console.log("Risposta da Axios: ", response);
@@ -122,21 +136,4 @@
     }
   }
 </script>
-
-<template>
-  <div>
-  </div>
-</template>
 <!-- TODO: fare messaggio di errore in caso di mancanza di luoghi dopo la lettura -->
-
-<style scoped>
-  h1 {
-    font-weight: 500;
-    font-size: 2.6rem;
-    position: relative;
-    top: -10px;
-  }
-  h3 {
-    font-size: 1.2em;
-  }
-</style>

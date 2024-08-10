@@ -7,11 +7,11 @@ export const useVenuesStore = defineStore('dataVenue', {
         isDataVenueLoaded: false as boolean,
     }),
     actions: {
-        setBookings(data: Venue[]) {
+        setVenues(data: Venue[]) {
             this.dataVenue = data;
         },
     },
     getters: {
-        getBookings: (state) => state.dataVenue,
+        getVenues: (state) => state.dataVenue,
     },
 });

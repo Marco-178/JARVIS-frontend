@@ -7,11 +7,11 @@ export const usePersonnelStore = defineStore('dataPersonnel', {
         isDataPersonnelLoaded: false as boolean,
     }),
     actions: {
-        setBookings(data: Personnel[]) {
+        setPersonnel(data: Personnel[]) {
             this.dataPersonnel = data;
         },
     },
     getters: {
-        getBookings: (state) => state.dataPersonnel,
+        getPersonnel: (state) => state.dataPersonnel,
     },
 });

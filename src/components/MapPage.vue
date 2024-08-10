@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import JSConfetti from 'js-confetti'
 import L from 'leaflet'
-import {ref, onMounted} from 'vue'
+import {ref, onMounted, watch} from 'vue'
 import axios from 'axios';
 import {Venue, Booking, Personnel} from '@/types';
 
@@ -19,6 +19,7 @@ const confetti = new JSConfetti();
 const mapContainer = ref<HTMLElement>();
 
 let map: L.Map;
+let markersLayer = L.layerGroup();
 let indirizzo: string;
 
 const venuesStore = useVenuesStore();
@@ -95,9 +96,13 @@ function initializeMap(){
     }).addTo(map);
   }
   initializeMarkers();
+  keepMapUpdated();
 }
 
 async function initializeMarkers(){
+  markerArray.value = [];
+  markersLayer.addTo(map);
+  markersLayer.clearLayers();
   const maxRetries = 3;
   const fetchGeocode = async(address:string, retries=0) => {
     const startTime = performance.now();
@@ -124,7 +129,7 @@ async function initializeMarkers(){
     catch (error) {
       const endTime = performance.now();
       console.error('Errore durante la geocodifica:', error);
-      console.log(`Richiesta "${address}" fallita dopo ${(endTime-startTime)/1000} secondi`) // TODO: risolvere errore CORS https://chatgpt.com/share/2e188179-bf8f-477f-8664-f7ab0fffdfc7
+      console.log(`Richiesta "${address}" fallita dopo ${(endTime-startTime)/1000} secondi`)
 
       if (retries < maxRetries){
         console.log(`Riprovo la richiesta per "${address}". Tentativo ${retries + 1}`);
@@ -157,8 +162,12 @@ function createMarker(address:string, result:any){
   const newMarker = new markerAddress(result.lat, result.lon, address);
   markerArray.value.push(newMarker);
   updateGeocodingStatusBar();
-  let marker = L.marker([result.lat, result.lon]).addTo(map).bindPopup(`<div class="popup-text">${result.display_name}</div>`);
+  let marker = L.marker([result.lat, result.lon]).addTo(markersLayer).bindPopup(`<div class="popup-text">${result.display_name}</div>`);
   marker.on('click', onMapClick);
+  marker.on('popupclose', () => {
+    selectedVenue.value = undefined;
+    console.log("Marker deselezionato");
+  });
 }
 
 function findAddress(address: string) { // utilizzo barra di ricerca
@@ -201,74 +210,75 @@ function updateGeocodingStatusBar(){
 }
 
 function bookEvent(){
-  confetti.addConfetti({
-    confettiRadius: 7,
-    confettiNumber: 700,
-  })
-  if(selectedVenue.value != undefined){
-    if(dataUser.value != null) {
-      const newBooking = new Booking(
-          -1, // placeholder, in lettura il vero id viene recuperato dal DB e in scrittura sul backend mandiamo un oggetto senza id
-          dataUser.value.codice_fiscale,
-          dataEventInfo.value.date,
-          {start: dataEventInfo.value.schedule_start, end: dataEventInfo.value.schedule_end},
-          selectedVenue.value,
-          selectedPersonnel.value,
-      )
-      dataBooking.value.push(newBooking);
-      console.log(dataBooking);
-      // TODO aggiunta prenotazione DB + segnalazione errore eventuale
-      const personnelName = [];
-      for (let i = 0; i < selectedPersonnel.value.length; i++) {
-        personnelName.push(selectedPersonnel.value[i].name);
+  if(dataUser.value != null && selectedVenue.value != undefined) {
+    // TODO  segnalazione errore eventuale
+    const personnelName: string[] = [];
+    for (let i = 0; i < selectedPersonnel.value.length; i++) {
+      personnelName.push(selectedPersonnel.value[i].name);
+    }
+    const booking = {
+      date: dataEventInfo.value.date,
+      duration: {
+        start: dataEventInfo.value.schedule_start,
+        end: dataEventInfo.value.schedule_end,
+      },
+      ssn: dataUser.value.codice_fiscale,
+      venue_id: selectedVenue.value.id,
+      personnel_name: personnelName
+    };
+    axios.post('/api/booking/add', booking, {
+      headers: {
+        'Content-Type': 'application/json'
       }
-      const booking = {
-        date: dataEventInfo.value.date,
-        duration: {
-          start: dataEventInfo.value.schedule_start,
-          end: dataEventInfo.value.schedule_end,
-        },
-        ssn: dataUser.value.codice_fiscale,
-        venue_id: selectedVenue.value.id,
-        personnel_name: personnelName
-      };
-
-      axios.post('/api/booking/add', booking, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-          .then(response => {
-            console.log('Booking ID:', response.data);
-            alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
-            for(let i = 0; i < dataVenue.value.length; i++){
-              if(dataVenue.value[i].address == selectedVenue.value?.address){
-                dataVenue.value.splice(i);
-              }
-            }
-            map.remove();
-            initializeMap();
-            // TODO: ripetere lettura venues da backend e bookings per aggiornare i posti disponibili
-          })
-          .catch(error => {
-            alert('ERRORE PRENOTAZIONE\n');
-            console.error('Errore:', error.response ? error.response.data : error.message);
-          });
-      //const response = axios.post('/api/booking/add', JSON.stringify(booking));
-    }
-    else{
-      console.error("Utente non definito!");
-    }
+    })
+    .then(response => {
+      console.log('Booking ID:', response.data);
+      let bookingId = response.data;
+      if (dataUser.value != null && selectedVenue.value != undefined) {
+        const newBooking = new Booking(
+            bookingId,
+            dataUser.value.codice_fiscale,
+            dataEventInfo.value.date,
+            {start: dataEventInfo.value.schedule_start, end: dataEventInfo.value.schedule_end},
+            selectedVenue.value,
+            selectedPersonnel.value,
+        )
+        dataBooking.value.push(newBooking);
+        bookingStore.updateData();
+        alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
+        confetti.addConfetti({
+          confettiRadius: 7,
+          confettiNumber: 700,
+        })
+      } else throw new Error('dataUser o selectedVenue non definito!');
+    })
+    .catch(error => {
+      alert('ERRORE PRENOTAZIONE\n');
+      console.error('Errore:', error.response ? error.response.data : error.message);
+    });
   }
   else{
-    console.error("selectedVenue non definito!");
+    console.error("dataUser o selectedVenue non definito!");
   }
+}
+
+function keepMapUpdated() {
+  watch(
+      () => bookingStore.isNotified,
+      () => {
+        if (bookingStore.isNotified) {
+          initializeMarkers();
+          bookingStore.isNotified = false;
+        }
+      }
+  );
 }
 </script>
 
 <template>
   <title>Nuova Prenotazione</title>
-  <article class="disposition first-content">
+  <h1 v-if="dataEventInfo" class="first-content" style="text-align: center;">Luoghi disponibili per evento di tipo "{{dataEventInfo.event_type}}" </h1>
+  <article class="disposition">
     <section class="item-disposition">
       <div style="order: 1"></div>
       <h1>Selezionare luogo per evento</h1>
@@ -329,14 +339,6 @@ function bookEvent(){
     border: solid var(--highlight-color) 2px;
   }
 
-  h1{
-    font-size: 2em;
-  }
-
-  h2{
-    font-size: 1em;
-  }
-
   .item-disposition{
     margin: 20px;
   }
@@ -353,7 +355,6 @@ function bookEvent(){
     flex-direction: row;
     align-content: center;
     align-items: flex-start;
-    padding: 20px;
   }
 
   input[type='text'] {

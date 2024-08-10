@@ -15,7 +15,7 @@ export class Venue{
     closingDays: string[];
     booking: Booking;
 
-    constructor(id:number, name:string, address:string, max_capacity:number, rent_cost:number, weekdayHours:{start:string, end:string;}, weekendHours:{start:string,end: string }, closingDays: string[], booking: Booking) { // TODO modificare costruttore e codici che lo usano
+    constructor(id:number, name:string, address:string, max_capacity:number, rent_cost:number, weekdayHours:{start:string, end:string;}, weekendHours:{start:string,end: string }, closingDays: string[], booking: Booking) {
         this.id = id;
         this.name = name;
         this.address = address;
@@ -46,6 +46,10 @@ export class Booking{
         this.duration = duration;
         this.venue = venue;
         this.personnel = personnel;
+    }
+
+    setId(newId: number): void {
+        this.id = newId;
     }
 }
 

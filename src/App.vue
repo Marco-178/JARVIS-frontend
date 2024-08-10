@@ -26,18 +26,4 @@ import BackendInteract from "@/components/BackendInteract.vue"
 header {
   line-height: 1.5;
 }
-
-@media (min-width: 1024px) { /* TODO rimuovere? */
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
 </style>

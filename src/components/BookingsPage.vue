@@ -16,14 +16,16 @@
     await axios.get<Booking>("/api/booking/del?id=" + id).then((response: AxiosResponse<Booking>) => {
       console.log("Risposta da Axios: ", response);
       console.log("Prenotazione cancellata con successo");
+      for(let i = 0; i < dataBooking.value.length; i++){
+        if(dataBooking.value[i].id == id){
+          dataBooking.value.splice(i);
+          break;
+        }
+      }
+      bookingStore.updateData();
     }).catch(error => {
       alert('Errore durante la cancellazione della prenotazione: ' + error.message);
     });
-    for(let i = 0; i < dataBooking.value.length; i++){
-      if(dataBooking.value[i].id == id){
-        dataBooking.value.splice(i);
-      }
-    }
   }
 </script>
 
