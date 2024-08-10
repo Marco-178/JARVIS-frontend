@@ -241,6 +241,13 @@ function bookEvent(){
           .then(response => {
             console.log('Booking ID:', response.data);
             alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
+            for(let i = 0; i < dataVenue.value.length; i++){
+              if(dataVenue.value[i].address == selectedVenue.value?.address){
+                dataVenue.value.splice(i);
+              }
+            }
+            map.remove();
+            initializeMap();
             // TODO: ripetere lettura venues da backend e bookings per aggiornare i posti disponibili
           })
           .catch(error => {
@@ -264,6 +271,7 @@ function bookEvent(){
   <article class="disposition first-content">
     <section class="item-disposition">
       <div style="order: 1"></div>
+      <h1>Selezionare luogo per evento</h1>
       <input v-model="indirizzo" type="text" name="ricerca" placeholder="Indirizzo da cercare">
       <button id="search-button" @click="findAddress(indirizzo)"><img src="/search.png" alt="cerca" height="20"/></button><br>
       <div ref="mapContainer" id="map"/>
@@ -291,9 +299,18 @@ function bookEvent(){
           <label> Selezionare il personale per l'evento :</label>
           <br>
           <form @submit.prevent="bookEvent">
-            <div v-for="(option, index) in dataPersonnel" :key="index">
+            <div v-for="(option, index) in dataPersonnel.sort((a, b) => {
+              // Controlla se il settore e il tipo di evento coincidono
+              const aHasPriority = a.sector.includes(dataEventInfo.event_type);
+              const bHasPriority = b.sector.includes(dataEventInfo.event_type);
+              // Ordina in base al settore
+              if (aHasPriority && !bHasPriority) return -1;
+              if (!aHasPriority && bHasPriority) return 1;
+              return 0;
+            })" :key="index">
+            <!--div v-for="(option, index) in dataPersonnel" :key="index"-->
               <input type="checkbox" v-model="selectedPersonnel" :value="option"/>
-              <span>{{ option.name }}, {{ option.hourly_cost }}</span>
+              <span> nome: {{ option.name }}, costo orario: {{ option.hourly_cost }}€, settori: {{ option.sector }}</span>
             </div>
           </form>
         </div>

@@ -25,10 +25,10 @@
   <nav>
     <ul>
       <li>
-        <router-link to="/" active-class="active-link">Prenotazioni</router-link>
+        <router-link to="/" active-class="active-link">Nuova prenotazione</router-link>
       </li>
       <li>
-        <router-link to="/bookings" active-class="active-link">Nuova prenotazione</router-link>
+        <router-link to="/bookings" active-class="active-link">Prenotazioni effettuate</router-link>
       </li>
       <li class="theme-button-switch">
         <input type="checkbox" id="theme-toggle" class="theme-button" v-model="isDarkThemeChecked">
