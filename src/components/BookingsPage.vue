@@ -4,6 +4,7 @@
   import {storeToRefs} from 'pinia';
   import axios, { type AxiosResponse } from 'axios'
   import {Booking} from '@/types'
+  import {ref} from "vue";
 
   const bookingStore = useBookingStore();
   const userStore = useUserStore();
@@ -12,13 +13,27 @@
   const {isDataBookingLoaded} = storeToRefs(bookingStore);
   const {dataUser} = storeToRefs(userStore);
 
+  let popupTitle = "placeholder title";
+  let popupMessage = "placeholder message";
+
+  const modal = ref<HTMLDialogElement | null>(null);
+
+  function setDialog() {
+    modal.value!.showModal();
+  }
+
+  function closeDialog(){
+    modal.value!.close();
+  }
+
   async function deleteBooking(id: number){
     await axios.get<Booking>("/api/booking/del?id=" + id).then((response: AxiosResponse<Booking>) => {
       console.log("Risposta da Axios: ", response);
       console.log("Prenotazione cancellata con successo");
       for(let i = 0; i < dataBooking.value.length; i++){
         if(dataBooking.value[i].id == id){
-          dataBooking.value.splice(i);
+          console.log(dataBooking.value[i]);
+          dataBooking.value.splice(i, 1);
           break;
         }
       }
@@ -34,23 +49,27 @@
   <h1 v-if="dataUser" class="first-content" style="text-align: center;">Prenotazioni dell'utente: {{dataUser.codice_fiscale}}</h1>
   <div v-if="isDataBookingLoaded">
     <div v-if="dataBooking.length > 0">
-      <section id="booking-info" v-for="booking in dataBooking" :key="booking.id">
-        <h1>{{booking.venue.name}}</h1>
-        {{booking.date}} dalle ore {{booking.duration.start}} alle ore {{booking.duration.end}} <br>
-        <strong>Indirizzo:</strong> {{booking.venue.address}} <br>
-        <strong>Capacità massima:</strong> {{booking.venue.max_capacity}} <br>
-        <strong>Costo:</strong> {{booking.venue.rent_cost}}€
-        <h2 v-if="booking.personnel.length > 0">Personale assunto:</h2>
-        <div v-for="personnel in booking.personnel" :key="personnel.name">
-          {{personnel.name}} - {{personnel.hourly_cost}}€ all'ora
-        </div>
-        <div style="text-align:right">
-          <button @click="deleteBooking(booking.id)" id="deleteBookingButton">
-            Elimina
-            <img src="/red-trash.png" alt="image of a trash bin">
-          </button>
-        </div>
-      </section>
+      <transition-group name="list" tag="ul">
+        <ul id="booking-info" v-for="booking in dataBooking" :key="booking.id">
+          <li>
+            <h1>{{booking.venue.name}}</h1>
+            {{booking.date}} dalle ore {{booking.duration.start}} alle ore {{booking.duration.end}} <br>
+            <strong>Indirizzo:</strong> {{booking.venue.address}} <br>
+            <strong>Capacità massima:</strong> {{booking.venue.max_capacity}} <br>
+            <strong>Costo:</strong> {{booking.venue.rent_cost}}€
+            <h2 v-if="booking.personnel.length > 0">Personale assunto:</h2>
+            <div v-for="personnel in booking.personnel" :key="personnel.name">
+              {{personnel.name}} - {{personnel.hourly_cost}}€ all'ora
+            </div>
+            <div style="text-align:right">
+              <button @click="deleteBooking(booking.id)" id="deleteBookingButton">
+                Elimina
+                <img src="/red-trash.png" alt="image of a trash bin">
+              </button>
+            </div>
+          </li>
+        </ul>
+      </transition-group>
     </div>
     <div v-else class="container error-container">
       <img src="/ErrorImage.png" alt="Error image" class="image"/>
@@ -60,6 +79,11 @@
     <div class="dotsLoader"/>
     <div class="loader"/>
   </div>
+  <dialog ref="modal" id="modal">
+    <h2>{{popupTitle}}</h2>
+    <p>{{popupMessage}}</p>
+    <button class="button" id="close-button" @click="closeDialog">Chiudi</button>
+  </dialog>
 </template>
 
 <style scoped>
@@ -71,6 +95,7 @@
     margin: 0 auto;
     height: 70vh;
     width: 100%;
+    animation: fade-up 0.5s;
   }
 
   .image {
@@ -83,6 +108,7 @@
 	  border: solid var(--highlight-color) 3px;
     padding: 10px;
     margin: 10px 0;
+    animation: fade-up 0.5s;
   }
 
   #booking-info strong {
@@ -103,6 +129,42 @@
   #deleteBookingButton{
     font-weight: 700;
   }
+
+  .list-move, /* apply transition to moving elements */
+  .list-enter-active,
+  .list-leave-active {
+    transition: all 0.5s ease;
+  }
+
+  .list-enter-from,
+  .list-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  /* ensure leaving items are taken out of layout flow so that moving
+     animations can be calculated correctly. */
+  .list-leave-active {
+    position: absolute;
+  }
+
+  /*.bounce-fade-enter-active {
+    animation: bounce-in 0.5s;
+  }
+  .bounce-fade-leave-active {
+    animation: bounce-in 0.5s reverse;
+  }
+  @keyframes bounce-in {
+    0% {
+      transform: scale(0);
+    }
+    50% {
+      transform: scale(1.25);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }*/
 
   .loader-container {
     border: solid var(--highlight-color) 3px;

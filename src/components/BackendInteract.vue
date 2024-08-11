@@ -72,8 +72,7 @@
           }
         });
       }).catch(error => {
-        console.error("Errore durante" +
-            "isDataBookingLoaded.value = true; la richiesta Axios: ", error);
+        console.error("Errore durante la richiesta Axios: ", error);
       });
       isDataBookingLoaded.value = true;
     }
@@ -136,4 +135,9 @@
     }
   }
 </script>
+
+<template>
+  <div>
+  </div>
+</template>
 <!-- TODO: fare messaggio di errore in caso di mancanza di luoghi dopo la lettura -->

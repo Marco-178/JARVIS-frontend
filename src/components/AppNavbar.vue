@@ -41,74 +41,80 @@
 </template>
 
 <style scoped>
-nav ul {
-  list-style: none;
-  padding:0;
-  margin:0;
-  background-color: var(--navbar-bg);
-  width: 100%;
+  nav ul {
+    list-style: none;
+    padding:0;
+    margin:0;
+    background-color: var(--navbar-bg);
+    width: 100%;
+    box-shadow: 0 2px 10px var(--highlight-color);
+    animation: fade-down 0.3s;
+  }
 
-}
+  nav ul:hover{
+    box-shadow: 0 2px 20px var(--highlight-color);
+    transition: .2s;
+  }
 
-nav ul li {
-  display: inline-block;
-}
+  nav ul li {
+    display: inline-block;
+  }
 
-nav ul li a {
-  display: block;
-  padding:10px 20px;
-  color: var(--navbar-text-color);
-}
+  nav ul li a {
+    display: block;
+    padding:10px 20px;
+    color: var(--navbar-text-color);
+  }
 
-nav ul li:active {
-  transform: translateY(2px);
-}
+  nav ul li:active {
+    transform: translateY(2px);
+  }
 
-nav ul li:hover {
-  background-color: var(--highlight-button-hover);
-}
+  nav ul li:hover {
+    background-color: var(--highlight-button-hover);
+  }
 
-nav ul li:hover > ul {
-  display: block;
-}
+  nav ul li:hover > ul {
+    display: block;
+  }
 
-.theme-button {
-  display: none;
-}
+  .theme-button {
+    display: none;
+  }
 
-.theme-button-switch {
-  display: inline-flex;
-  align-items: center;
-  width: 5em;
-  height: 1.5em;
-  border-radius: 10em;
-  user-select: none; /* Impedisce la selezione del testo */
-  transition: background-color 0.3s;
-  box-shadow: 0 8px 40px hsla(0, 0%, 0%, .2);
-  background-color: #fff;
-}
+  .theme-button-switch {
+    display: inline-flex;
+    align-items: center;
+    width: 5em;
+    height: 1.5em;
+    border-radius: 10em;
+    user-select: none; /* Impedisce la selezione del testo */
+    transition: background-color 0.3s;
+    box-shadow: 0 8px 40px hsla(0, 0%, 0%, .2);
+    background-color: #fff;
+  }
 
-.theme-button-container{
-  width: 100%;
-  height: 100%;
+  .theme-button-container{
+    width: 100%;
+    height: 100%;
 
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-.animateBg{
-  position: fixed;
-  width: 200%;
-  height: 100vh;
-  z-index: -3;
-  clip-path: circle(0% at 0% 0%);
-  transition: 0.5s ease-out;
-  top: 0;
-  left: 0;
-}
+  .animateBg{
+    position: fixed;
+    width: 200%;
+    height: 100vh;
+    z-index: -3;
+    clip-path: circle(0% at 0% 0%);
+    transition: 0.5s ease-out;
+    top: 0;
+    left: 0;
+  }
 
-input:checked ~ .animateBg {
-  clip-path: circle(100% at 0% 0%);
-}
+  input:checked ~ .animateBg {
+    clip-path: circle(100% at 0% 0%);
+  }
 </style>

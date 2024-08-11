@@ -52,3 +52,60 @@ a,
   --navbar-bg: hsla(0, 0%, 95%, 0.27);
   --navbar-text-color: hsl(0, 0%, 100%);
 }
+
+@keyframes fade-down{
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+}
+
+@keyframes fade-up{
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+}
+
+dialog#modal{
+  padding: 1em;
+  max-width: 50ch;
+  z-index: 5;
+  position: fixed;
+  top:40%;
+  left:40%;
+  transform: translate(-50%, -50%);
+  border-color: var(--highlight-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: var(--color-background-soft);
+  color: var(--color-text);
+
+  & > *{
+    margin: 0 0 0.5rem 0;
+  }
+}
+
+dialog#modal[open]{
+  animation: fade-up 300ms forwards;
+}
+
+dialog#modal::backdrop{
+  background:rgb(0 0 0 / .4);
+}
+
+dialog#modal[closing]{
+  animation: fade-down 300ms forwards;
+}
+
+dialog#modal.closingDialog{
+  animation: fade-down 300ms forwards;
+}

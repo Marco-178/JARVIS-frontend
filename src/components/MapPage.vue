@@ -42,6 +42,21 @@ const selectedVenue = ref<Venue>();
 const selectedPersonnel = ref<Personnel[]>([]);
 const loadedMarkers = ref<number>(0);
 
+let popupTitle = "placeholder title";
+let popupMessage = "placeholder message";
+
+const modal = ref<HTMLDialogElement | null>(null);
+
+function useDialog(title:string, message:string) {
+  popupTitle = title;
+  popupMessage = message;
+  modal.value!.showModal();
+}
+
+function closeDialog(){
+  modal.value!.close();
+}
+
 class markerAddress{
   latlon: {
     lat: number;
@@ -166,7 +181,6 @@ function createMarker(address:string, result:any){
   marker.on('click', onMapClick);
   marker.on('popupclose', () => {
     selectedVenue.value = undefined;
-    console.log("Marker deselezionato");
   });
 }
 
@@ -243,9 +257,11 @@ function bookEvent(){
             selectedVenue.value,
             selectedPersonnel.value,
         )
+        console.log(dataBooking.value);
         dataBooking.value.push(newBooking);
+        console.log(dataBooking.value);
         bookingStore.updateData();
-        alert('PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
+        useDialog('', 'PRENOTAZIONE AVVENUTA CON SUCCESSO\n');
         confetti.addConfetti({
           confettiRadius: 7,
           confettiNumber: 700,
@@ -331,12 +347,30 @@ function keepMapUpdated() {
       </section>
     </section>
   </article>
+  <dialog ref="modal" id="modal">
+    <h2>{{popupTitle}}</h2>
+    <p>{{popupMessage}}</p>
+    <button class="button" id="close-button" @click="closeDialog">Chiudi</button>
+  </dialog>
 </template>
 
 <style scoped>
+  h1{
+    font-size: 2em;
+  }
+  h2{
+    font-size: 1em;
+  }
+
   #map{
     height: 580px; width: 580px;
     border: solid var(--highlight-color) 2px;
+    animation: fade-down 0.4s;
+  }
+
+  #map:hover{
+    box-shadow: 0 2px 20px var(--highlight-color);
+    transition: .3s;
   }
 
   .item-disposition{
@@ -348,6 +382,13 @@ function keepMapUpdated() {
     background-color: var(--color-background-mute);
     padding: 20px;
     color: var(--color-text);
+    animation: fade-up 0.5s;
+    width: 60ch;
+  }
+
+  .booking-box:hover{
+    box-shadow: 0 2px 10px var(--highlight-color);
+    transition: .3s;
   }
 
   .disposition{
@@ -378,5 +419,9 @@ function keepMapUpdated() {
     border-radius: 5px;
     background-color: var(--highlight-color);
     transition: 0.5s;
+  }
+
+  canvas.js-confetti {
+    z-index: 10 !important;
   }
 </style>
